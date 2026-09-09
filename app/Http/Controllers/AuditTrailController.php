@@ -10,10 +10,9 @@ class AuditTrailController extends Controller
 {
     public function index(Request $request)
     {
-        // Only ADMIN and AUDITOR
-        if (!in_array(auth()->user()->role, ['ADMIN', 'AUDITOR'])) {
-            abort(403);
-        }
+        // BUG-07: Use AuditLogPolicy instead of manual role check
+        $this->authorize('viewAny', AuditLog::class);
+
 
         $query = AuditLog::with('user');
 

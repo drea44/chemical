@@ -24,9 +24,8 @@ class StockController extends Controller
     // STOCK IN
     public function showStockIn(Request $request)
     {
-        if (!in_array(auth()->user()->role, ['ADMIN', 'STOCK_MANAGER'])) {
-            abort(403, 'Unauthorized. Only Administrators and Stock Managers can perform stock operations.');
-        }
+        // BUG-05: Use registered Gate instead of manual role check
+        $this->authorize('stockIn');
 
         $chemicals = Chemical::where('status', '!=', 'EXPIRED')
             ->with(['category', 'location'])->orderBy('chemical_name')->get();
@@ -38,9 +37,9 @@ class StockController extends Controller
 
     public function processStockIn(StockInRequest $request)
     {
-        if (!in_array(auth()->user()->role, ['ADMIN', 'STOCK_MANAGER'])) {
-            abort(403, 'Unauthorized.');
-        }
+        // BUG-05: Authorization already handled by StockInRequest::authorize() which calls canManageStock()
+        // Gate check here for belt-and-suspenders consistency
+        $this->authorize('stockIn');
 
         $chemical = Chemical::findOrFail($request->chemical_id);
         $tx = $this->stockService->stockIn($chemical, (float) $request->quantity, $request->validated());
@@ -52,9 +51,7 @@ class StockController extends Controller
     // STOCK OUT
     public function showStockOut(Request $request)
     {
-        if (!in_array(auth()->user()->role, ['ADMIN', 'STOCK_MANAGER'])) {
-            abort(403, 'Unauthorized. Only Administrators and Stock Managers can perform stock operations.');
-        }
+        $this->authorize('stockOut');
 
         $chemicals = Chemical::whereNotIn('status', ['EXPIRED'])
             ->with(['category', 'location'])->orderBy('chemical_name')->get();
@@ -66,9 +63,7 @@ class StockController extends Controller
 
     public function processStockOut(StockOutRequest $request)
     {
-        if (!in_array(auth()->user()->role, ['ADMIN', 'STOCK_MANAGER'])) {
-            abort(403, 'Unauthorized.');
-        }
+        $this->authorize('stockOut');
 
         $chemical = Chemical::findOrFail($request->chemical_id);
 
@@ -85,9 +80,7 @@ class StockController extends Controller
     // STOCK ADJUSTMENT
     public function showAdjustment(Request $request)
     {
-        if (!in_array(auth()->user()->role, ['ADMIN', 'STOCK_MANAGER'])) {
-            abort(403, 'Unauthorized. Only Administrators and Stock Managers can perform stock operations.');
-        }
+        $this->authorize('adjustStock');
 
         $chemicals = Chemical::with(['category', 'location'])->orderBy('chemical_name')->get();
         $selected = $request->query('chemical')
@@ -98,9 +91,7 @@ class StockController extends Controller
 
     public function processAdjustment(StockAdjustmentRequest $request)
     {
-        if (!in_array(auth()->user()->role, ['ADMIN', 'STOCK_MANAGER'])) {
-            abort(403, 'Unauthorized.');
-        }
+        $this->authorize('adjustStock');
 
         $chemical  = Chemical::findOrFail($request->chemical_id);
         $newStock  = (float) $request->adjusted_stock;

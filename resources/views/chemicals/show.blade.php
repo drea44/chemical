@@ -83,17 +83,17 @@
             <div class="flex items-end gap-8 mb-4">
                 <div>
                     <p class="text-xs text-gray-400 uppercase tracking-wide">Current Stock</p>
-                    <p class="text-3xl font-bold text-gray-900">{{ number_format($chemical->current_stock, 2) }}</p>
+                    <p class="text-3xl font-bold text-gray-900">{{ $chemical->formatted_stock }}</p>
                     <p class="text-sm text-gray-400">{{ $chemical->unit }}</p>
                 </div>
                 <div>
                     <p class="text-xs text-gray-400 uppercase tracking-wide">Minimum</p>
-                    <p class="text-lg font-semibold text-gray-600">{{ number_format($chemical->minimum_stock, 2) }} {{ $chemical->unit }}</p>
+                    <p class="text-lg font-semibold text-gray-600">{{ $chemical->formatted_min_stock }} {{ $chemical->unit }}</p>
                 </div>
                 @if($chemical->maximum_stock)
                 <div>
                     <p class="text-xs text-gray-400 uppercase tracking-wide">Maximum</p>
-                    <p class="text-lg font-semibold text-gray-600">{{ number_format($chemical->maximum_stock, 2) }} {{ $chemical->unit }}</p>
+                    <p class="text-lg font-semibold text-gray-600">{{ $chemical->maximum_stock == floor($chemical->maximum_stock) ? number_format($chemical->maximum_stock, 0) : rtrim(rtrim(number_format($chemical->maximum_stock, 4), '0'), '.') }} {{ $chemical->unit }}</p>
                 </div>
                 @endif
             </div>

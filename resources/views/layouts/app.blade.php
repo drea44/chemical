@@ -55,6 +55,31 @@
                 <x-alert type="warning" :message="session('warning')" class="mb-5" />
             @endif
 
+            {{-- BUG-08 Fix: Temporary password display (one-time, not in generic flash) --}}
+            @if(session('temp_password'))
+                <div class="mb-5 rounded-xl border border-amber-300 bg-amber-50 p-4" x-data="{ copied: false }">
+                    <div class="flex items-start gap-3">
+                        <div class="mt-0.5 text-amber-500">
+                            <svg xmlns="http://www.w3.org/2000/svg" class="h-5 w-5" fill="none" viewBox="0 0 24 24" stroke="currentColor" stroke-width="2"><path stroke-linecap="round" stroke-linejoin="round" d="M12 9v2m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
+                        </div>
+                        <div class="flex-1">
+                            <p class="text-sm font-semibold text-amber-800">Temporary Password for {{ session('temp_password_user') }}</p>
+                            <p class="mt-1 text-xs text-amber-700">Share this password securely with the user. It will not be shown again.</p>
+                            <div class="mt-2 flex items-center gap-2">
+                                <code class="rounded bg-white px-3 py-1.5 text-sm font-mono font-bold text-amber-900 border border-amber-200 select-all">{{ session('temp_password') }}</code>
+                                <button @click="navigator.clipboard.writeText('{{ session('temp_password') }}'); copied = true; setTimeout(() => copied = false, 2000)"
+                                        class="rounded-lg bg-amber-600 px-3 py-1.5 text-xs font-medium text-white hover:bg-amber-700 transition-colors"
+                                        x-text="copied ? 'Copied!' : 'Copy'">
+                                    Copy
+                                </button>
+                            </div>
+                            <p class="mt-2 text-xs text-amber-600">⚠ The user must change this password upon first login.</p>
+                        </div>
+                    </div>
+                </div>
+            @endif
+
+
             @yield('content')
         </main>
 

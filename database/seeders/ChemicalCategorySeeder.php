@@ -15,6 +15,8 @@ class ChemicalCategorySeeder extends Seeder
             ['name' => 'Bases',       'description' => 'Alkaline compounds including hydroxides and carbonates.', 'status' => 'active'],
             ['name' => 'Oxidizers',   'description' => 'Oxidizing agents used in reactions and analytical procedures.', 'status' => 'active'],
             ['name' => 'Reagents',    'description' => 'General analytical and synthesis reagents.', 'status' => 'active'],
+            ['name' => 'Media & Microbiology', 'description' => 'Agar, broth, and microbiological culture media.', 'status' => 'active'],
+            ['name' => 'Consumables & Supplies', 'description' => 'Filters, petri dishes, gloves, pipettes, and lab consumables.', 'status' => 'active'],
         ];
 
         foreach ($categories as $category) {

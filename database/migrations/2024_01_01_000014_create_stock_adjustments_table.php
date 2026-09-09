@@ -12,9 +12,9 @@ return new class extends Migration
             $table->id();
             $table->string('adjustment_code')->unique();
             $table->foreignId('chemical_id')->constrained('chemicals')->onDelete('restrict');
-            $table->decimal('previous_stock', 12, 3);
-            $table->decimal('adjusted_stock', 12, 3);
-            $table->decimal('difference', 12, 3);
+            $table->decimal('previous_stock', 14, 4);
+            $table->decimal('adjusted_stock', 14, 4);
+            $table->decimal('difference', 14, 4);
             $table->text('reason');
             $table->string('evidence')->nullable();
             $table->enum('status', ['pending', 'approved', 'rejected'])->default('pending');

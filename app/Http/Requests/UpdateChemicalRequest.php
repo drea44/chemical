@@ -34,7 +34,7 @@ class UpdateChemicalRequest extends FormRequest
             'hazard_class'      => 'nullable|string|max:100',
             'location_id'       => 'nullable|exists:chemical_locations,id',
             'received_date'     => 'nullable|date',
-            'expiry_date'       => 'nullable|date',
+            'expiry_date'       => 'nullable|date|after_or_equal:received_date',
             'notes'             => 'nullable|string|max:2000',
         ];
     }

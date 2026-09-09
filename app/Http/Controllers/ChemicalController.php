@@ -7,20 +7,20 @@ use App\Http\Requests\UpdateChemicalRequest;
 use App\Models\Chemical;
 use App\Models\ChemicalCategory;
 use App\Models\ChemicalLocation;
-use App\Models\StockTransaction;
 use App\Models\Supplier;
 use App\Services\AuditLogService;
 use App\Services\ChemicalService;
 use App\Services\QRCodeService;
+use App\Services\StockService;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Auth;
-use Illuminate\Support\Str;
 
 class ChemicalController extends Controller
 {
     public function __construct(
         private ChemicalService $chemicalService,
-        private QRCodeService   $qrCodeService
+        private QRCodeService   $qrCodeService,
+        private StockService    $stockService,
     ) {}
 
     public function index(Request $request)
@@ -62,7 +62,9 @@ class ChemicalController extends Controller
             $query->orderBy($sortField, $sortDir === 'desc' ? 'desc' : 'asc');
         }
 
-        $chemicals  = $query->paginate(20)->withQueryString();
+        $perPage   = (int) $request->get('per_page', 20);
+        $perPage   = in_array($perPage, [20, 50, 100, 200]) ? $perPage : 20;
+        $chemicals = $query->paginate($perPage)->withQueryString();
         $categories = ChemicalCategory::where('status', 'active')->orderBy('name')->get();
         $locations  = ChemicalLocation::where('status', 'active')->orderBy('name')->get();
 
@@ -101,28 +103,9 @@ class ChemicalController extends Controller
         $chemical->qr_code = $this->qrCodeService->generate($chemical->chemical_code, $qrContent);
         $chemical->save();
 
-        // Record initial stock transaction if initial stock > 0
+        // Record initial stock transaction if initial stock > 0 (BUG-04: delegate to StockService)
         if ($chemical->current_stock > 0) {
-            $lastTx = StockTransaction::orderBy('id', 'desc')->first();
-            $nextNum = $lastTx ? ((int) preg_replace('/[^0-9]/', '', $lastTx->transaction_code)) + 1 : 1;
-            $txCode = 'TXN-' . str_pad($nextNum, 5, '0', STR_PAD_LEFT);
-
-            StockTransaction::create([
-                'transaction_code' => $txCode,
-                'chemical_id'      => $chemical->id,
-                'transaction_type' => 'STOCK_IN',
-                'quantity'         => $chemical->current_stock,
-                'unit'             => $chemical->unit,
-                'stock_before'     => 0,
-                'stock_after'      => $chemical->current_stock,
-                'reference_number' => $chemical->batch_number ? 'BATCH-' . $chemical->batch_number : 'INIT-' . $chemical->chemical_code,
-                'reason'           => 'Initial stock on chemical registration',
-                'location_id'      => $chemical->location_id,
-                'transaction_date' => now(),
-                'performed_by'     => Auth::id(),
-                'status'           => 'completed',
-                'notes'            => 'Automatic initial ledger entry on registration.',
-            ]);
+            $this->stockService->createInitialStockTransaction($chemical);
         }
 
         AuditLogService::logCreated('Chemical', $chemical->id, [

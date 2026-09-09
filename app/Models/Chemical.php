@@ -22,9 +22,9 @@ class Chemical extends Model
     protected $casts = [
         'received_date'  => 'date',
         'expiry_date'    => 'date',
-        'current_stock'  => 'decimal:3',
-        'minimum_stock'  => 'decimal:3',
-        'maximum_stock'  => 'decimal:3',
+        'current_stock'  => 'decimal:4',
+        'minimum_stock'  => 'decimal:4',
+        'maximum_stock'  => 'decimal:4',
     ];
 
     // Relationships
@@ -109,5 +109,23 @@ class Chemical extends Model
         return $this->expiry_date
             && !$this->expiry_date->isPast()
             && $this->expiry_date->lte(Carbon::now()->addDays($days));
+    }
+
+    public function getFormattedStockAttribute(): string
+    {
+        $val = (float) $this->current_stock;
+        if (floor($val) == $val) {
+            return number_format($val, 0);
+        }
+        return rtrim(rtrim(number_format($val, 4), '0'), '.');
+    }
+
+    public function getFormattedMinStockAttribute(): string
+    {
+        $val = (float) $this->minimum_stock;
+        if (floor($val) == $val) {
+            return number_format($val, 0);
+        }
+        return rtrim(rtrim(number_format($val, 4), '0'), '.');
     }
 }

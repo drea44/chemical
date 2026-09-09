@@ -20,44 +20,60 @@ class ChemicalService
     }
 
     /**
-     * Update status for all chemicals based on current settings.
+     * Update status for all chemicals based on current settings (BUG-11 fix: chunking).
      */
     public function refreshAllStatuses(): void
     {
         $expiryDays = (int) SystemSetting::getValue('expiry_warning_days', 30);
-        Chemical::all()->each(function (Chemical $chemical) use ($expiryDays) {
-            $chemical->updateStatus($expiryDays);
-            $chemical->saveQuietly();
+        Chemical::chunk(100, function ($chemicals) use ($expiryDays) {
+            foreach ($chemicals as $chemical) {
+                $chemical->updateStatus($expiryDays);
+                $chemical->saveQuietly();
+            }
         });
     }
 
     /**
-     * Get notification counts for topbar badge.
+     * Get notification counts for topbar badge (BUG-23 fix: single aggregated query).
      */
     public function getNotificationCounts(): array
     {
+        $counts = Chemical::selectRaw('status, count(*) as total')
+            ->whereIn('status', ['LOW', 'CRITICAL', 'EXPIRING_SOON', 'EXPIRED'])
+            ->groupBy('status')
+            ->pluck('total', 'status');
+
+        $low          = (int) ($counts['LOW'] ?? 0);
+        $critical     = (int) ($counts['CRITICAL'] ?? 0);
+        $expiringSoon = (int) ($counts['EXPIRING_SOON'] ?? 0);
+        $expired      = (int) ($counts['EXPIRED'] ?? 0);
+
         return [
-            'low_stock'     => Chemical::where('status', 'LOW')->count(),
-            'critical'      => Chemical::where('status', 'CRITICAL')->count(),
-            'expiring_soon' => Chemical::where('status', 'EXPIRING_SOON')->count(),
-            'expired'       => Chemical::where('status', 'EXPIRED')->count(),
-            'total'         => Chemical::whereIn('status', ['LOW', 'CRITICAL', 'EXPIRING_SOON', 'EXPIRED'])->count(),
+            'low_stock'     => $low,
+            'critical'      => $critical,
+            'expiring_soon' => $expiringSoon,
+            'expired'       => $expired,
+            'total'         => $low + $critical + $expiringSoon + $expired,
         ];
     }
 
     /**
-     * Get dashboard statistics.
+     * Get dashboard statistics (optimized to single group-by query + sum).
      */
     public function getDashboardStats(): array
     {
+        $statusCounts = Chemical::selectRaw('status, count(*) as total')
+            ->groupBy('status')
+            ->pluck('total', 'status');
+
         return [
-            'total_chemicals'  => Chemical::count(),
-            'total_stock'      => Chemical::sum('current_stock'),
-            'low_stock'        => Chemical::whereIn('status', ['LOW'])->count(),
-            'critical_stock'   => Chemical::where('status', 'CRITICAL')->count(),
-            'expiring_soon'    => Chemical::where('status', 'EXPIRING_SOON')->count(),
-            'expired'          => Chemical::where('status', 'EXPIRED')->count(),
-            'safe'             => Chemical::where('status', 'SAFE')->count(),
+            'total_chemicals'  => (int) $statusCounts->sum(),
+            'total_stock'      => (float) Chemical::sum('current_stock'),
+            'low_stock'        => (int) ($statusCounts['LOW'] ?? 0),
+            'critical_stock'   => (int) ($statusCounts['CRITICAL'] ?? 0),
+            'expiring_soon'    => (int) ($statusCounts['EXPIRING_SOON'] ?? 0),
+            'expired'          => (int) ($statusCounts['EXPIRED'] ?? 0),
+            'safe'             => (int) ($statusCounts['SAFE'] ?? 0),
         ];
     }
 }

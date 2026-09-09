@@ -53,8 +53,15 @@
             <option value="{{ $s }}" @selected(request('status') == $s)>{{ ucfirst(strtolower(str_replace('_', ' ', $s))) }}</option>
             @endforeach
         </select>
+        <!-- Per Page -->
+        <select name="per_page" class="rounded border border-gray-300 px-3 py-2 text-sm text-gray-700 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 bg-white">
+            <option value="20" @selected(request('per_page') == 20)>20 per page</option>
+            <option value="50" @selected(request('per_page') == 50)>50 per page</option>
+            <option value="100" @selected(request('per_page') == 100)>100 per page</option>
+            <option value="200" @selected(request('per_page') == 200)>All (200) per page</option>
+        </select>
         <button type="submit" class="px-4 py-2 bg-blue-600 text-white rounded text-sm font-medium hover:bg-blue-700 transition-colors">Filter</button>
-        @if(request()->hasAny(['search','category','location','status']))
+        @if(request()->hasAny(['search','category','location','status','per_page']))
         <a href="{{ route('chemicals.index') }}" class="px-4 py-2 border border-gray-300 text-gray-600 rounded text-sm hover:bg-gray-50 transition-colors">Clear</a>
         @endif
     </form>
@@ -117,8 +124,8 @@
                         @endif
                     </td>
                     <td class="px-4 py-3">
-                        <div class="text-sm font-semibold text-gray-900">{{ number_format($chem->current_stock, 1) }}</div>
-                        <div class="text-xs text-gray-400">{{ $chem->unit }} · Min {{ number_format($chem->minimum_stock, 1) }}</div>
+                        <div class="text-sm font-semibold text-gray-900">{{ $chem->formatted_stock }}</div>
+                        <div class="text-xs text-gray-400">{{ $chem->unit }} · Min {{ $chem->formatted_min_stock }}</div>
                         @if($chem->maximum_stock)
                         <div class="mt-1 h-1 bg-gray-100 rounded-full w-20 overflow-hidden">
                             <div class="h-full rounded-full {{ $chem->status === 'SAFE' ? 'bg-green-500' : ($chem->status === 'LOW' ? 'bg-yellow-400' : 'bg-red-500') }}"

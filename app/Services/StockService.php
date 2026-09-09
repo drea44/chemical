@@ -161,15 +161,49 @@ class StockService
         });
     }
 
-    private function generateTransactionCode(): string
+    /**
+     * Create an initial stock transaction when a new chemical is registered.
+     * Used by ChemicalController to ensure consistent code generation.
+     */
+    public function createInitialStockTransaction(Chemical $chemical): StockTransaction
     {
-        $maxId = (int) StockTransaction::max('id');
-        return 'TXN-' . str_pad($maxId + 1, 5, '0', STR_PAD_LEFT);
+        return StockTransaction::create([
+            'transaction_code' => $this->generateTransactionCode(),
+            'chemical_id'      => $chemical->id,
+            'transaction_type' => 'STOCK_IN',
+            'quantity'         => (float) $chemical->current_stock,
+            'unit'             => $chemical->unit,
+            'stock_before'     => 0,
+            'stock_after'      => (float) $chemical->current_stock,
+            'reference_number' => $chemical->batch_number
+                ? 'BATCH-' . $chemical->batch_number
+                : 'INIT-' . $chemical->chemical_code,
+            'reason'           => 'Initial stock on chemical registration',
+            'location_id'      => $chemical->location_id,
+            'transaction_date' => now(),
+            'performed_by'     => Auth::id(),
+            'status'           => 'completed',
+            'notes'            => 'Automatic initial ledger entry on registration.',
+        ]);
     }
 
-    private function generateAdjustmentCode(): string
+    /**
+     * Generate a collision-safe transaction code.
+     *
+     * Uses timestamp + microseconds + random suffix to ensure uniqueness
+     * even under concurrent requests (BUG-02 fix). The UNIQUE database
+     * constraint on transaction_code is the final safety net.
+     */
+    public function generateTransactionCode(): string
     {
-        $maxId = (int) StockAdjustment::max('id');
-        return 'ADJ-' . str_pad($maxId + 1, 5, '0', STR_PAD_LEFT);
+        return 'TXN-' . now()->format('YmdHis') . '-' . strtoupper(Str::random(4));
+    }
+
+    /**
+     * Generate a collision-safe adjustment code (BUG-03 fix).
+     */
+    public function generateAdjustmentCode(): string
+    {
+        return 'ADJ-' . now()->format('YmdHis') . '-' . strtoupper(Str::random(4));
     }
 }

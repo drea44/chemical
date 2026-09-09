@@ -3,7 +3,7 @@
 @php
     $title      = 'Reports';
     $breadcrumb = [['label' => 'Reports', 'url' => route('reports.index')]];
-    $tab        = request('tab', 'inventory');
+    $tab        = $tab ?? request('tab', 'monitoring_june');
 @endphp
 
 @section('title', 'Reports')
@@ -33,10 +33,14 @@
     <div class="border-b border-gray-200 bg-gray-50">
         <nav class="flex gap-0 px-5 pt-3">
             @foreach([
-                ['tab' => 'inventory',    'label' => 'Inventory Summary',   'icon' => 'package'],
-                ['tab' => 'movement',     'label' => 'Stock Movement',       'icon' => 'arrow-left-right'],
-                ['tab' => 'expiry',       'label' => 'Expiry Report',        'icon' => 'calendar-x'],
-                ['tab' => 'adjustments',  'label' => 'Adjustments',          'icon' => 'sliders-horizontal'],
+                ['tab' => 'monitoring_june',  'label' => 'Monitoring Data Juni 2026',  'icon' => 'calendar-days'],
+                ['tab' => 'monitoring_may',   'label' => 'Monitoring Data Mei 2026',   'icon' => 'calendar-check'],
+                ['tab' => 'monitoring_april', 'label' => 'Monitoring Data April 2026', 'icon' => 'clipboard-check'],
+                ['tab' => 'monitoring_march', 'label' => 'Monitoring Data Maret 2026', 'icon' => 'history'],
+                ['tab' => 'inventory',        'label' => 'Inventory Summary',          'icon' => 'package'],
+                ['tab' => 'movement',         'label' => 'Stock Movement',              'icon' => 'arrow-left-right'],
+                ['tab' => 'expiry',           'label' => 'Expiry Report',               'icon' => 'calendar-x'],
+                ['tab' => 'adjustments',      'label' => 'Adjustments',                 'icon' => 'sliders-horizontal'],
             ] as $t)
             <a href="{{ route('reports.index', ['tab' => $t['tab']]) }}"
                class="flex items-center gap-2 px-4 py-2.5 text-sm font-medium rounded-t border-b-2 transition-colors mr-1
@@ -48,7 +52,281 @@
         </nav>
     </div>
 
-    <div class="p-0">
+        {{-- TAB: Monitoring Data Juni 2026 --}}
+        @if($tab === 'monitoring_june' || $tab === 'monitoring')
+        <div class="overflow-x-auto">
+            <div class="p-4 bg-sky-50/60 border-b border-sky-100 flex items-center justify-between">
+                <div>
+                    <h3 class="text-sm font-semibold text-sky-900">Laporan Monitoring Penggunaan Bahan Kimia & Habis Pakai (Juni 2026)</h3>
+                    <p class="text-xs text-sky-700 mt-0.5">Menampilkan saldo awal Juni, penerimaan, rincian pengeluaran per analis (Jihan, Tyas, Fitria, Nur Janah, Alya, Gebrina, Fahmi, Iseh, Bayu, Prapto), dan saldo akhir.</p>
+                </div>
+                <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-sky-100 text-sky-800">
+                    250 Item Tercatat
+                </span>
+            </div>
+            <table class="w-full text-sm">
+                <thead class="bg-gray-50 border-b border-gray-100">
+                    <tr>
+                        <th class="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide w-12">No</th>
+                        <th class="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Chemical Name</th>
+                        <th class="text-center px-3 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Satuan</th>
+                        <th class="text-right px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Saldo Awal</th>
+                        <th class="text-right px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Penerimaan</th>
+                        <th class="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Pengeluaran (Takes)</th>
+                        <th class="text-right px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Saldo Akhir</th>
+                        <th class="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Status</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-50">
+                    @forelse($monitoringReportJune as $row)
+                    <tr class="hover:bg-gray-50 {{ $row->pengeluaran > 0 || $row->penerimaan > 0 ? 'bg-sky-50/20' : '' }}">
+                        <td class="px-5 py-3 text-xs text-gray-400 font-mono">{{ $row->no }}</td>
+                        <td class="px-4 py-3">
+                            <a href="{{ route('chemicals.show', $row->chemical) }}" class="font-medium text-gray-900 hover:text-blue-600 text-xs">
+                                {{ $row->chemical->chemical_name }}
+                            </a>
+                            <span class="text-xs text-gray-400 block font-mono">{{ $row->chemical->chemical_code }}</span>
+                        </td>
+                        <td class="px-3 py-3 text-center text-xs text-gray-500">{{ $row->unit }}</td>
+                        <td class="px-4 py-3 text-right font-mono text-xs text-gray-800">
+                            {{ $row->saldo_awal == floor($row->saldo_awal) ? number_format($row->saldo_awal, 0) : rtrim(rtrim(number_format($row->saldo_awal, 4), '0'), '.') }}
+                        </td>
+                        <td class="px-4 py-3 text-right font-mono text-xs font-semibold {{ $row->penerimaan > 0 ? 'text-green-600' : 'text-gray-400' }}">
+                            {{ $row->penerimaan > 0 ? '+' . ($row->penerimaan == floor($row->penerimaan) ? number_format($row->penerimaan, 0) : rtrim(rtrim(number_format($row->penerimaan, 4), '0'), '.')) : '—' }}
+                        </td>
+                        <td class="px-4 py-3 text-xs">
+                            @if($row->takes->count() > 0)
+                                <div class="flex flex-wrap gap-1">
+                                @foreach($row->takes as $t)
+                                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-mono bg-amber-50 text-amber-800 border border-amber-200">
+                                        {{ \Carbon\Carbon::parse($t->transaction_date)->format('d/m') }}:
+                                        -{{ (float)$t->quantity == (int)$t->quantity ? number_format($t->quantity, 0) : rtrim(rtrim(number_format($t->quantity, 4), '0'), '.') }}
+                                        ({{ $t->performer?->name ?? 'Analyst' }})
+                                    </span>
+                                @endforeach
+                                </div>
+                            @else
+                                <span class="text-gray-400 text-xs">—</span>
+                            @endif
+                        </td>
+                        <td class="px-4 py-3 text-right font-mono text-xs font-bold {{ $row->saldo_akhir < 0 ? 'text-red-600' : ($row->pengeluaran > 0 ? 'text-sky-700' : 'text-gray-900') }}">
+                            {{ $row->saldo_akhir == floor($row->saldo_akhir) ? number_format($row->saldo_akhir, 0) : rtrim(rtrim(number_format($row->saldo_akhir, 4), '0'), '.') }}
+                        </td>
+                        <td class="px-4 py-3"><x-status-badge :status="$row->status" /></td>
+                    </tr>
+                    @empty
+                    <tr><td colspan="8" class="px-5 py-12 text-center text-sm text-gray-400">No monitoring data available</td></tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+        @endif
+
+        {{-- TAB: Monitoring Data Mei 2026 --}}
+        @if($tab === 'monitoring_may' || $tab === 'monitoring')
+        <div class="overflow-x-auto">
+            <div class="p-4 bg-indigo-50/60 border-b border-indigo-100 flex items-center justify-between">
+                <div>
+                    <h3 class="text-sm font-semibold text-indigo-900">Laporan Monitoring Penggunaan Bahan Kimia & Habis Pakai (Mei 2026)</h3>
+                    <p class="text-xs text-indigo-700 mt-0.5">Menampilkan saldo awal Mei, penerimaan, rincian pengeluaran per analis (Fitria, Alya, Gebrina, Nur Janah), dan saldo akhir.</p>
+                </div>
+                <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-indigo-100 text-indigo-800">
+                    249 Item Tercatat
+                </span>
+            </div>
+            <table class="w-full text-sm">
+                <thead class="bg-gray-50 border-b border-gray-100">
+                    <tr>
+                        <th class="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide w-12">No</th>
+                        <th class="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Chemical Name</th>
+                        <th class="text-center px-3 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Satuan</th>
+                        <th class="text-right px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Saldo Awal</th>
+                        <th class="text-right px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Penerimaan</th>
+                        <th class="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Pengeluaran (Takes)</th>
+                        <th class="text-right px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Saldo Akhir</th>
+                        <th class="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Status</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-50">
+                    @forelse($monitoringReportMay as $row)
+                    <tr class="hover:bg-gray-50 {{ $row->pengeluaran > 0 || $row->penerimaan > 0 ? 'bg-indigo-50/20' : '' }}">
+                        <td class="px-5 py-3 text-xs text-gray-400 font-mono">{{ $row->no }}</td>
+                        <td class="px-4 py-3">
+                            <a href="{{ route('chemicals.show', $row->chemical) }}" class="font-medium text-gray-900 hover:text-blue-600 text-xs">
+                                {{ $row->chemical->chemical_name }}
+                            </a>
+                            <span class="text-xs text-gray-400 block font-mono">{{ $row->chemical->chemical_code }}</span>
+                        </td>
+                        <td class="px-3 py-3 text-center text-xs text-gray-500">{{ $row->unit }}</td>
+                        <td class="px-4 py-3 text-right font-mono text-xs text-gray-800">
+                            {{ $row->saldo_awal == floor($row->saldo_awal) ? number_format($row->saldo_awal, 0) : rtrim(rtrim(number_format($row->saldo_awal, 4), '0'), '.') }}
+                        </td>
+                        <td class="px-4 py-3 text-right font-mono text-xs font-semibold {{ $row->penerimaan > 0 ? 'text-green-600' : 'text-gray-400' }}">
+                            {{ $row->penerimaan > 0 ? '+' . ($row->penerimaan == floor($row->penerimaan) ? number_format($row->penerimaan, 0) : rtrim(rtrim(number_format($row->penerimaan, 4), '0'), '.')) : '—' }}
+                        </td>
+                        <td class="px-4 py-3 text-xs">
+                            @if($row->takes->count() > 0)
+                                <div class="flex flex-wrap gap-1">
+                                @foreach($row->takes as $t)
+                                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-mono bg-amber-50 text-amber-800 border border-amber-200">
+                                        {{ \Carbon\Carbon::parse($t->transaction_date)->format('d/m') }}:
+                                        -{{ (float)$t->quantity == (int)$t->quantity ? number_format($t->quantity, 0) : rtrim(rtrim(number_format($t->quantity, 4), '0'), '.') }}
+                                        ({{ $t->performer?->name ?? 'Analyst' }})
+                                    </span>
+                                @endforeach
+                                </div>
+                            @else
+                                <span class="text-gray-400 text-xs">—</span>
+                            @endif
+                        </td>
+                        <td class="px-4 py-3 text-right font-mono text-xs font-bold {{ $row->saldo_akhir < 0 ? 'text-red-600' : ($row->pengeluaran > 0 ? 'text-indigo-700' : 'text-gray-900') }}">
+                            {{ $row->saldo_akhir == floor($row->saldo_akhir) ? number_format($row->saldo_akhir, 0) : rtrim(rtrim(number_format($row->saldo_akhir, 4), '0'), '.') }}
+                        </td>
+                        <td class="px-4 py-3"><x-status-badge :status="$row->status" /></td>
+                    </tr>
+                    @empty
+                    <tr><td colspan="8" class="px-5 py-12 text-center text-sm text-gray-400">No monitoring data available</td></tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+        @endif
+
+        {{-- TAB: Monitoring Data April 2026 --}}
+        @if($tab === 'monitoring_april' || $tab === 'monitoring')
+        <div class="overflow-x-auto">
+            <div class="p-4 bg-emerald-50/60 border-b border-emerald-100 flex items-center justify-between">
+                <div>
+                    <h3 class="text-sm font-semibold text-emerald-900">Laporan Monitoring Penggunaan Bahan Kimia & Habis Pakai (April 2026)</h3>
+                    <p class="text-xs text-emerald-700 mt-0.5">Menampilkan saldo awal April, penerimaan, rincian pengeluaran per analis (Fitria, Alya, Gebrina, Tyas, Jihan, Nur Janah), dan saldo akhir.</p>
+                </div>
+                <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-emerald-100 text-emerald-800">
+                    248 Item Tercatat
+                </span>
+            </div>
+            <table class="w-full text-sm">
+                <thead class="bg-gray-50 border-b border-gray-100">
+                    <tr>
+                        <th class="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide w-12">No</th>
+                        <th class="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Chemical Name</th>
+                        <th class="text-center px-3 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Satuan</th>
+                        <th class="text-right px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Saldo Awal</th>
+                        <th class="text-right px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Penerimaan</th>
+                        <th class="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Pengeluaran (Takes)</th>
+                        <th class="text-right px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Saldo Akhir</th>
+                        <th class="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Status</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-50">
+                    @forelse($monitoringReportApril as $row)
+                    <tr class="hover:bg-gray-50 {{ $row->pengeluaran > 0 || $row->penerimaan > 0 ? 'bg-emerald-50/20' : '' }}">
+                        <td class="px-5 py-3 text-xs text-gray-400 font-mono">{{ $row->no }}</td>
+                        <td class="px-4 py-3">
+                            <a href="{{ route('chemicals.show', $row->chemical) }}" class="font-medium text-gray-900 hover:text-blue-600 text-xs">
+                                {{ $row->chemical->chemical_name }}
+                            </a>
+                            <span class="text-xs text-gray-400 block font-mono">{{ $row->chemical->chemical_code }}</span>
+                        </td>
+                        <td class="px-3 py-3 text-center text-xs text-gray-500">{{ $row->unit }}</td>
+                        <td class="px-4 py-3 text-right font-mono text-xs text-gray-800">
+                            {{ $row->saldo_awal == floor($row->saldo_awal) ? number_format($row->saldo_awal, 0) : rtrim(rtrim(number_format($row->saldo_awal, 4), '0'), '.') }}
+                        </td>
+                        <td class="px-4 py-3 text-right font-mono text-xs font-semibold {{ $row->penerimaan > 0 ? 'text-green-600' : 'text-gray-400' }}">
+                            {{ $row->penerimaan > 0 ? '+' . ($row->penerimaan == floor($row->penerimaan) ? number_format($row->penerimaan, 0) : rtrim(rtrim(number_format($row->penerimaan, 4), '0'), '.')) : '—' }}
+                        </td>
+                        <td class="px-4 py-3 text-xs">
+                            @if($row->takes->count() > 0)
+                                <div class="flex flex-wrap gap-1">
+                                @foreach($row->takes as $t)
+                                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-mono bg-amber-50 text-amber-800 border border-amber-200">
+                                        {{ \Carbon\Carbon::parse($t->transaction_date)->format('d/m') }}:
+                                        -{{ (float)$t->quantity == (int)$t->quantity ? number_format($t->quantity, 0) : rtrim(rtrim(number_format($t->quantity, 4), '0'), '.') }}
+                                        ({{ $t->performer?->name ?? 'Analyst' }})
+                                    </span>
+                                @endforeach
+                                </div>
+                            @else
+                                <span class="text-gray-400 text-xs">—</span>
+                            @endif
+                        </td>
+                        <td class="px-4 py-3 text-right font-mono text-xs font-bold {{ $row->saldo_akhir < 0 ? 'text-red-600' : ($row->pengeluaran > 0 ? 'text-emerald-700' : 'text-gray-900') }}">
+                            {{ $row->saldo_akhir == floor($row->saldo_akhir) ? number_format($row->saldo_akhir, 0) : rtrim(rtrim(number_format($row->saldo_akhir, 4), '0'), '.') }}
+                        </td>
+                        <td class="px-4 py-3"><x-status-badge :status="$row->status" /></td>
+                    </tr>
+                    @empty
+                    <tr><td colspan="8" class="px-5 py-12 text-center text-sm text-gray-400">No monitoring data available</td></tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+        @endif
+
+        {{-- TAB: Monitoring Data Maret 2026 (Database Maret) --}}
+        @if($tab === 'monitoring_march')
+        <div class="overflow-x-auto">
+            <div class="p-4 bg-blue-50/60 border-b border-blue-100 flex items-center justify-between">
+                <div>
+                    <h3 class="text-sm font-semibold text-blue-900">Laporan Monitoring Penggunaan Bahan Kimia (Maret 2026)</h3>
+                    <p class="text-xs text-blue-700 mt-0.5">Database riwayat pemakaian Maret 2026 tersimpan utuh dan lengkap.</p>
+                </div>
+                <span class="inline-flex items-center px-2.5 py-1 rounded-full text-xs font-medium bg-blue-100 text-blue-800">
+                    Database Maret Utuh
+                </span>
+            </div>
+            <table class="w-full text-sm">
+                <thead class="bg-gray-50 border-b border-gray-100">
+                    <tr>
+                        <th class="text-left px-5 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide w-12">No</th>
+                        <th class="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Chemical Name</th>
+                        <th class="text-right px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Saldo Awal (ml/g)</th>
+                        <th class="text-center px-3 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Satuan</th>
+                        <th class="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Pengambilan Maret 2026</th>
+                        <th class="text-right px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Saldo Akhir Maret</th>
+                        <th class="text-left px-4 py-3 text-xs font-semibold text-gray-500 uppercase tracking-wide">Status</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-gray-50">
+                    @forelse($monitoringReportMarch as $row)
+                    <tr class="hover:bg-gray-50 {{ $row->used_stock > 0 ? 'bg-blue-50/20' : '' }}">
+                        <td class="px-5 py-3 text-xs text-gray-400 font-mono">{{ $row->no }}</td>
+                        <td class="px-4 py-3">
+                            <a href="{{ route('chemicals.show', $row->chemical) }}" class="font-medium text-gray-900 hover:text-blue-600 text-xs">
+                                {{ $row->chemical->chemical_name }}
+                            </a>
+                            <span class="text-xs text-gray-400 block font-mono">{{ $row->chemical->chemical_code }}</span>
+                        </td>
+                        <td class="px-4 py-3 text-right font-mono text-xs text-gray-800">
+                            {{ $row->initial_stock == floor($row->initial_stock) ? number_format($row->initial_stock, 0) : rtrim(rtrim(number_format($row->initial_stock, 4), '0'), '.') }}
+                        </td>
+                        <td class="px-3 py-3 text-center text-xs text-gray-500">{{ $row->unit }}</td>
+                        <td class="px-4 py-3 text-xs">
+                            @if($row->takes->count() > 0)
+                                <div class="flex flex-wrap gap-1">
+                                @foreach($row->takes as $t)
+                                    <span class="inline-flex items-center gap-1 px-2 py-0.5 rounded text-xs font-mono bg-amber-50 text-amber-800 border border-amber-200">
+                                        {{ \Carbon\Carbon::parse($t->transaction_date)->format('d/m') }}:
+                                        -{{ (float)$t->quantity == (int)$t->quantity ? number_format($t->quantity, 0) : rtrim(rtrim(number_format($t->quantity, 4), '0'), '.') }}
+                                        ({{ $t->performer?->name ?? 'Analyst' }})
+                                    </span>
+                                @endforeach
+                                </div>
+                            @else
+                                <span class="text-gray-400 text-xs">—</span>
+                            @endif
+                        </td>
+                        <td class="px-4 py-3 text-right font-mono text-xs font-bold {{ $row->used_stock > 0 ? 'text-blue-700' : 'text-gray-900' }}">
+                            {{ $row->current_stock == floor($row->current_stock) ? number_format($row->current_stock, 0) : rtrim(rtrim(number_format($row->current_stock, 4), '0'), '.') }}
+                        </td>
+                        <td class="px-4 py-3"><x-status-badge :status="$row->status" /></td>
+                    </tr>
+                    @empty
+                    <tr><td colspan="7" class="px-5 py-12 text-center text-sm text-gray-400">No monitoring data available</td></tr>
+                    @endforelse
+                </tbody>
+            </table>
+        </div>
+        @endif
 
         {{-- TAB: Inventory Summary --}}
         @if($tab === 'inventory')

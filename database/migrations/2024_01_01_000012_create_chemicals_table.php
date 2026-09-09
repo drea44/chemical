@@ -22,9 +22,9 @@ return new class extends Migration
             $table->string('concentration')->nullable();
             $table->enum('physical_state', ['solid', 'liquid', 'gas', 'powder', 'solution'])->nullable();
             $table->string('unit')->default('L');
-            $table->decimal('current_stock', 12, 3)->default(0);
-            $table->decimal('minimum_stock', 12, 3)->default(0);
-            $table->decimal('maximum_stock', 12, 3)->nullable();
+            $table->decimal('current_stock', 14, 4)->default(0);
+            $table->decimal('minimum_stock', 14, 4)->default(0);
+            $table->decimal('maximum_stock', 14, 4)->nullable();
             $table->string('storage_condition')->nullable();
             $table->string('hazard_class')->nullable();
             $table->foreignId('location_id')->nullable()->constrained('chemical_locations')->onDelete('set null');

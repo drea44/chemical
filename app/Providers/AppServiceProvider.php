@@ -2,9 +2,11 @@
 
 namespace App\Providers;
 
+use App\Models\AuditLog;
 use App\Models\Chemical;
 use App\Models\Supplier;
 use App\Models\User;
+use App\Policies\AuditLogPolicy;
 use App\Policies\ChemicalPolicy;
 use App\Policies\StockPolicy;
 use App\Policies\SupplierPolicy;
@@ -32,6 +34,7 @@ class AppServiceProvider extends ServiceProvider
         Paginator::useTailwind();
 
         // Register Policies
+        Gate::policy(AuditLog::class, AuditLogPolicy::class);
         Gate::policy(Chemical::class, ChemicalPolicy::class);
         Gate::policy(Supplier::class, SupplierPolicy::class);
         Gate::policy(User::class, UserPolicy::class);

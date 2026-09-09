@@ -8,23 +8,18 @@ use Illuminate\Http\Request;
 
 class SettingsController extends Controller
 {
-    private function authorizeAdmin(): void
-    {
-        if (!auth()->user()?->isAdmin()) {
-            abort(403, 'Only administrators can access settings.');
-        }
-    }
-
     public function index()
     {
-        $this->authorizeAdmin();
+        // BUG-06: Use Laravel's authorize() consistently instead of custom private method
+        $this->authorize('viewAny', \App\Models\User::class); // Only ADMIN can access settings
+
         $settings = SystemSetting::all()->keyBy('key');
         return view('settings.index', compact('settings'));
     }
 
     public function update(Request $request)
     {
-        $this->authorizeAdmin();
+        $this->authorize('viewAny', \App\Models\User::class); // Only ADMIN
 
         $validated = $request->validate([
             'system_name'              => 'nullable|string|max:100',

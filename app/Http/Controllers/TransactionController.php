@@ -47,7 +47,7 @@ class TransactionController extends Controller
         }
 
         $transactions = $query->orderBy('transaction_date', 'desc')->paginate(25)->withQueryString();
-        $users        = User::orderBy('name')->get();
+        $users        = User::orderBy('name')->get(['id', 'name']);
         $chemicals    = Chemical::orderBy('chemical_name')->get(['id', 'chemical_name', 'chemical_code']);
 
         return view('transactions.index', compact('transactions', 'users', 'chemicals'));
