@@ -6,8 +6,13 @@ echo "==> Starting Chemical Stock OS Container..."
 # Adjust Apache port for cloud environments (Railway, Render, etc.)
 PORT="${PORT:-80}"
 echo "==> Configuring Apache to listen on port ${PORT}..."
-sed -ri -e "s!Listen [0-9]+!Listen ${PORT}!g" /etc/apache2/ports.conf
-sed -ri -e "s!<VirtualHost \*:[0-9]+>!<VirtualHost \*:${PORT}>!g" /etc/apache2/sites-available/*.conf
+echo "Listen ${PORT}" > /etc/apache2/ports.conf
+sed -ri -e "s!<VirtualHost \*:[0-9]+>!<VirtualHost \*:${PORT}>!g" /etc/apache2/sites-available/000-default.conf
+
+# Fix AH00534: ensure only mpm_prefork is loaded
+a2dismod mpm_event 2>/dev/null || true
+a2dismod mpm_worker 2>/dev/null || true
+a2enmod mpm_prefork 2>/dev/null || true
 
 # Setup storage and cache directories
 mkdir -p /var/www/html/storage/framework/{sessions,views,cache}

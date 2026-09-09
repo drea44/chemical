@@ -24,8 +24,11 @@ RUN apt-get update && apt-get install -y --no-install-recommends \
     && docker-php-ext-install pdo pdo_mysql pdo_sqlite mbstring exif pcntl bcmath gd zip \
     && apt-get clean && rm -rf /var/lib/apt/lists/*
 
-# Enable Apache mod_rewrite
-RUN a2enmod rewrite
+# Enable Apache mod_rewrite and ensure single MPM prefork
+RUN a2enmod rewrite \
+    && a2dismod mpm_event 2>/dev/null || true \
+    && a2dismod mpm_worker 2>/dev/null || true \
+    && a2enmod mpm_prefork 2>/dev/null || true
 
 # Configure Apache DocumentRoot to Laravel /public
 ENV APACHE_DOCUMENT_ROOT=/var/www/html/public
