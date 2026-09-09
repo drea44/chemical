@@ -30,10 +30,6 @@ if [ "${DB_CONNECTION}" = "sqlite" ] || [ -z "${DB_CONNECTION}" ]; then
     chmod 664 "${DB_FILE}" || true
 fi
 
-# Set proper permissions for Apache (www-data)
-chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache /var/www/html/database
-chmod -R 775 /var/www/html/storage /var/www/html/bootstrap/cache /var/www/html/database
-
 # Run database migrations
 echo "==> Running database migrations..."
 php artisan migrate --force
@@ -47,6 +43,13 @@ echo "==> Optimizing application caches..."
 php artisan config:cache || true
 php artisan route:cache || true
 php artisan view:cache || true
+
+# Set full permissions for Apache (www-data) AFTER all artisan commands
+chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache /var/www/html/database
+chmod -R 777 /var/www/html/storage /var/www/html/bootstrap/cache /var/www/html/database
+if [ -f "${DB_FILE}" ]; then
+    chmod 666 "${DB_FILE}" || true
+fi
 
 echo "==> Application ready! Starting Apache web server..."
 if [ "$#" -gt 0 ]; then
