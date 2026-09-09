@@ -1,0 +1,23 @@
+services:
+  app:
+    build:
+      context: .
+      dockerfile: Dockerfile
+    container_name: chemical_stock_os
+    restart: unless-stopped
+    ports:
+      - "8080:80"
+    environment:
+      - APP_NAME=Chemical Stock OS
+      - APP_ENV=production
+      - APP_DEBUG=false
+      - APP_KEY=base64:ljupWKw2O6t7Q/awwHe9PyIzHePXpzrDcs+J+PzpwEQ=
+      - APP_URL=http://localhost:8080
+      - DB_CONNECTION=sqlite
+    volumes:
+      - chemical_data:/var/www/html/database
+      - chemical_storage:/var/www/html/storage
+
+volumes:
+  chemical_data:
+  chemical_storage:
