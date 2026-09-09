@@ -51,7 +51,7 @@ RUN composer install --no-dev --optimize-autoloader --no-interaction
 
 # Setup entrypoint script
 COPY docker/entrypoint.sh /usr/local/bin/entrypoint.sh
-RUN chmod +x /usr/local/bin/entrypoint.sh
+RUN sed -i 's/\r$//' /usr/local/bin/entrypoint.sh && chmod +x /usr/local/bin/entrypoint.sh
 
 # Default environment settings
 ENV APP_ENV=production

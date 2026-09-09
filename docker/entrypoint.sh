@@ -44,4 +44,8 @@ php artisan route:cache || true
 php artisan view:cache || true
 
 echo "==> Application ready! Starting Apache web server..."
-exec apache2-foreground
+if [ "$#" -gt 0 ]; then
+    exec "$@"
+else
+    exec apache2-foreground
+fi
