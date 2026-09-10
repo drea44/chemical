@@ -282,25 +282,55 @@
 .qr-marker-bl { bottom: 20px !important; left: 20px !important; }
 
 .qr-laser-line {
-    position: absolute !important;
-    left: 8px !important;
-    right: 8px !important;
-    top: 50% !important;
-    transform: translateY(-50%) !important;
-    height: 2.5px !important;
-    background-color: #ef4444 !important;
-    box-shadow: 0 0 10px #ef4444, 0 0 4px #ef4444 !important;
-    border-radius: 2px !important;
-    z-index: 13 !important;
+    position: absolute;
+    left: 8px;
+    right: 8px;
+    top: 50%;
+    transform: translateY(-50%);
+    height: 3px;
+    background: linear-gradient(90deg, rgba(239, 68, 68, 0.1) 0%, #ef4444 15%, #ff6b6b 50%, #ef4444 85%, rgba(239, 68, 68, 0.1) 100%);
+    box-shadow: 0 0 12px 2px rgba(239, 68, 68, 0.85), 0 0 4px #ef4444;
+    border-radius: 9999px;
+    z-index: 13;
+    pointer-events: none;
+    transition: opacity 0.3s ease;
+}
+
+.qr-laser-line::before {
+    content: '';
+    position: absolute;
+    left: 0;
+    right: 0;
+    top: -12px;
+    bottom: -12px;
+    background: radial-gradient(ellipse at center, rgba(239, 68, 68, 0.35) 0%, rgba(239, 68, 68, 0) 75%);
+    pointer-events: none;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+
+.qr-laser-line.laser-active {
+    top: 0;
+    animation: laserSweep 2.2s ease-in-out infinite;
+}
+
+.qr-laser-line.laser-active::before {
+    opacity: 1;
 }
 
 @keyframes laserSweep {
-    0%   { transform: translateY(-75px); }
-    50%  { transform: translateY(75px); }
-    100% { transform: translateY(-75px); }
-}
-.laser-active {
-    animation: laserSweep 2.2s ease-in-out infinite !important;
+    0% {
+        transform: translateY(16px);
+        opacity: 0.85;
+    }
+    50% {
+        transform: translateY(220px);
+        opacity: 1;
+    }
+    100% {
+        transform: translateY(16px);
+        opacity: 0.85;
+    }
 }
 </style>
 @endpush
