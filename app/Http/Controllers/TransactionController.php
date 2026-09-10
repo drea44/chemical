@@ -11,9 +11,7 @@ class TransactionController extends Controller
 {
     public function index(Request $request)
     {
-        // [SIMULASI ERROR UNTUK MENTOR]: Relasi 'department' belum ada di Model StockTransaction
-        // Kembalikan ke normal: ganti baris ini menjadi $query = StockTransaction::with(['chemical', 'performer', 'location']);
-        $query = StockTransaction::with(['chemical', 'performer', 'location', 'department']);
+        $query = StockTransaction::with(['chemical', 'performer', 'location']);
 
         if ($search = $request->get('search')) {
             $query->where(function ($q) use ($search) {

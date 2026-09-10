@@ -52,9 +52,7 @@ class StockController extends Controller
             });
         }
 
-        // [SIMULASI ERROR UNTUK MENTOR]: Memanggil method 'getLedgerSummary()' yang belum didefinisikan
-        // Kembalikan ke normal: ganti '$query->getLedgerSummary()' kembali menjadi '$query->orderBy('transaction_date', 'desc')'
-        $transactions = $query->getLedgerSummary()
+        $transactions = $query->orderBy('transaction_date', 'desc')
             ->paginate(10)
             ->withQueryString();
 
