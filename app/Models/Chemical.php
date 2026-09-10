@@ -43,6 +43,11 @@ class Chemical extends Model
         return $this->hasMany(StockTransaction::class)->orderBy('transaction_date', 'desc');
     }
 
+    public function transactions()
+    {
+        return $this->stockTransactions();
+    }
+
     public function stockAdjustments()
     {
         return $this->hasMany(StockAdjustment::class);

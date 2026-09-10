@@ -6,6 +6,7 @@ use App\Http\Requests\StockAdjustmentRequest;
 use App\Http\Requests\StockInRequest;
 use App\Http\Requests\StockOutRequest;
 use App\Models\Chemical;
+use App\Models\StockTransaction;
 use App\Services\StockService;
 use Illuminate\Http\Request;
 
@@ -13,12 +14,53 @@ class StockController extends Controller
 {
     public function __construct(private StockService $stockService) {}
 
-    public function index()
+    public function index(Request $request)
     {
-        $chemicals = Chemical::with(['category', 'location'])
-            ->orderByRaw("CASE status WHEN 'CRITICAL' THEN 1 WHEN 'EXPIRED' THEN 2 WHEN 'EXPIRING_SOON' THEN 3 WHEN 'LOW' THEN 4 ELSE 5 END")
-            ->paginate(20);
-        return view('stock.index', compact('chemicals'));
+        $query = StockTransaction::with(['chemical', 'performer']);
+
+        if ($chemicalId = $request->get('chemical')) {
+            $query->where('chemical_id', $chemicalId);
+        }
+
+        if ($dateRange = $request->get('date_range')) {
+            if ($dateRange === 'today') {
+                $query->whereDate('transaction_date', today());
+            } elseif ($dateRange === 'yesterday') {
+                $query->whereDate('transaction_date', today()->subDay());
+            } elseif (is_numeric($dateRange)) {
+                $query->where('transaction_date', '>=', now()->subDays((int)$dateRange));
+            }
+        }
+
+        if ($type = $request->get('type')) {
+            $query->where('transaction_type', $type);
+        }
+
+        if ($search = $request->get('search')) {
+            $query->where(function ($q) use ($search) {
+                $q->where('transaction_code', 'like', "%{$search}%")
+                  ->orWhere('reference_number', 'like', "%{$search}%")
+                  ->orWhereHas('chemical', function ($c) use ($search) {
+                      $c->where('chemical_name', 'like', "%{$search}%")
+                        ->orWhere('chemical_code', 'like', "%{$search}%")
+                        ->orWhere('cas_number', 'like', "%{$search}%")
+                        ->orWhere('batch_number', 'like', "%{$search}%");
+                  })
+                  ->orWhereHas('performer', function ($u) use ($search) {
+                      $u->where('name', 'like', "%{$search}%");
+                  });
+            });
+        }
+
+        // [SIMULASI ERROR UNTUK MENTOR]: Memanggil method 'getLedgerSummary()' yang belum didefinisikan
+        // Kembalikan ke normal: ganti '$query->getLedgerSummary()' kembali menjadi '$query->orderBy('transaction_date', 'desc')'
+        $transactions = $query->getLedgerSummary()
+            ->paginate(10)
+            ->withQueryString();
+
+        $chemicals = Chemical::orderBy('chemical_name')->get(['id', 'chemical_name', 'chemical_code']);
+
+        return view('stock.index', compact('transactions', 'chemicals'));
     }
 
     // STOCK IN

@@ -18,21 +18,37 @@ class QRScannerController extends Controller
             'code' => 'required|string|max:255',
         ]);
 
-        $code = trim($request->input('code'));
+        $rawCode = trim($request->input('code'));
+        $code = $rawCode;
 
-        // Support both raw code and CHEM: prefixed code
-        $chemicalCode = str_starts_with($code, 'CHEM:')
-            ? substr($code, 5)
-            : $code;
+        $chemical = null;
 
-        $chemical = Chemical::where('chemical_code', $chemicalCode)
-            ->with(['category', 'location'])
-            ->first();
+        // Support URL like http://.../chemicals/12
+        if (preg_match('/chemicals\/(\d+)/', $code, $matches)) {
+            $chemical = Chemical::with(['category', 'location'])->find($matches[1]);
+        }
+
+        if (!$chemical) {
+            // Support both raw code and CHEM: prefixed code
+            $chemicalCode = str_starts_with($code, 'CHEM:')
+                ? substr($code, 5)
+                : $code;
+
+            $chemical = Chemical::where('chemical_code', $chemicalCode)
+                ->orWhere('batch_number', $chemicalCode)
+                ->orWhere('qr_code', 'like', "%{$rawCode}%")
+                ->with(['category', 'location'])
+                ->first();
+        }
+
+        if (!$chemical && is_numeric($code)) {
+            $chemical = Chemical::with(['category', 'location'])->find($code);
+        }
 
         if (!$chemical) {
             return response()->json([
                 'found'   => false,
-                'message' => 'QR code not recognized. Chemical not found in registry.',
+                'message' => 'QR code "' . htmlspecialchars($rawCode) . '" not recognized. Chemical not found in registry.',
             ]);
         }
 
