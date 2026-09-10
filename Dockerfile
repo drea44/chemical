@@ -58,9 +58,10 @@ RUN sed -i 's/\r$//' /usr/local/bin/entrypoint.sh && chmod +x /usr/local/bin/ent
 
 # Default environment settings
 ENV APP_ENV=production
-ENV APP_DEBUG=false
+ENV APP_DEBUG=true
 ENV APP_KEY=base64:ljupWKw2O6t7Q/awwHe9PyIzHePXpzrDcs+J+PzpwEQ=
 ENV SESSION_DRIVER=file
+ENV LOG_CHANNEL=stderr
 ENV PORT=80
 
 EXPOSE 80

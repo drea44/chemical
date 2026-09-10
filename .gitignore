@@ -2,6 +2,7 @@
 /public/build
 /public/hot
 /public/storage
+cloudflared.exe
 /storage/*.key
 /storage/pail
 /storage/framework/cache/data/*

@@ -24,12 +24,10 @@
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
 
-        {{-- LEFT: Intake Details --}}
         <div class="lg:col-span-2">
             <div class="bg-white border border-gray-200 rounded-lg p-6">
                 <h2 class="text-sm font-semibold text-gray-800 mb-5">Intake Details</h2>
 
-                {{-- Chemical Substance --}}
                 <div class="mb-4">
                     <label for="chemical_id" class="block text-sm font-medium text-gray-700 mb-1">
                         Chemical Substance <span class="text-red-500">*</span>
@@ -50,7 +48,6 @@
                     @error('chemical_id')<p class="text-xs text-red-600 mt-1">{{ $message }}</p>@enderror
                 </div>
 
-                {{-- Batch/Lot Number + Date of Intake --}}
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                     <div>
                         <label for="reference_number" class="block text-sm font-medium text-gray-700 mb-1">
@@ -72,7 +69,6 @@
                     </div>
                 </div>
 
-                {{-- Intake Quantity + Measurement Unit --}}
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                     <div>
                         <label for="quantity" class="block text-sm font-medium text-gray-700 mb-1">
@@ -101,7 +97,6 @@
                     </div>
                 </div>
 
-                {{-- Authorized Supplier + Target Location --}}
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                     <div>
                         <label for="reason" class="block text-sm font-medium text-gray-700 mb-1">
@@ -134,7 +129,6 @@
                     </div>
                 </div>
 
-                {{-- Receiving Notes --}}
                 <div>
                     <label for="notes" class="block text-sm font-medium text-gray-700 mb-1">Receiving Notes</label>
                     <textarea id="notes" name="notes" rows="4"
@@ -144,7 +138,6 @@
             </div>
         </div>
 
-        {{-- RIGHT: Transaction Preview --}}
         <div class="lg:col-span-1 space-y-4">
             <div class="bg-white border border-gray-200 rounded-lg p-5">
                 <h2 class="text-sm font-semibold text-gray-800 mb-5">Transaction Preview</h2>
@@ -175,7 +168,6 @@
                     </div>
                 </div>
 
-                {{-- Compliance Checks --}}
                 <div class="border border-gray-100 rounded p-3 mb-5">
                     <p class="text-xs font-semibold text-gray-400 uppercase tracking-wide mb-2">Compliance Checks</p>
                     <div class="space-y-1.5">
@@ -190,7 +182,6 @@
                     </div>
                 </div>
 
-                {{-- Actions --}}
                 <button type="submit" :disabled="submitting"
                         class="w-full py-2.5 bg-blue-600 hover:bg-blue-700 text-white text-sm font-semibold rounded transition-colors disabled:opacity-50 mb-2">
                     <span x-text="submitting ? 'Processing...' : 'Confirm & Record Stock In'"></span>

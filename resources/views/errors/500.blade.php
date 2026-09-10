@@ -24,6 +24,14 @@
                 Return to Dashboard
             </a>
         </div>
+
+        @if(isset($exception))
+        <div class="mt-6 p-4 bg-slate-950/80 border border-slate-700 text-left rounded-xl font-mono text-xs text-rose-300 overflow-x-auto max-h-80">
+            <p class="font-bold text-red-400 mb-1">{{ get_class($exception) }}: {{ $exception->getMessage() }}</p>
+            <p class="text-slate-400 text-[11px] mb-2">{{ $exception->getFile() }}:{{ $exception->getLine() }}</p>
+            <pre class="text-[10px] text-slate-300 whitespace-pre-wrap">{{ $exception->getTraceAsString() }}</pre>
+        </div>
+        @endif
     </div>
 </body>
 </html>

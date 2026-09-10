@@ -20,14 +20,33 @@ mkdir -p /var/www/html/storage/logs
 mkdir -p /var/www/html/bootstrap/cache
 mkdir -p /var/www/html/database
 
+# Ensure APP_KEY exists
+if [ -z "${APP_KEY}" ]; then
+    echo "==> Generating application key..."
+    php artisan key:generate --force
+fi
+
+# Detect Railway MySQL if available
+if [ -n "${MYSQLHOST}" ] || [ -n "${MYSQL_URL}" ]; then
+    echo "==> Detected Railway MySQL environment..."
+    export DB_CONNECTION=mysql
+    export DB_HOST="${DB_HOST:-$MYSQLHOST}"
+    export DB_PORT="${DB_PORT:-$MYSQLPORT}"
+    export DB_DATABASE="${DB_DATABASE:-$MYSQLDATABASE}"
+    export DB_USERNAME="${DB_USERNAME:-$MYSQLUSER}"
+    export DB_PASSWORD="${DB_PASSWORD:-$MYSQLPASSWORD}"
+fi
+
 # Handle SQLite if driver is sqlite
 if [ "${DB_CONNECTION}" = "sqlite" ] || [ -z "${DB_CONNECTION}" ]; then
+    export DB_CONNECTION=sqlite
     DB_FILE="${DB_DATABASE:-/var/www/html/database/database.sqlite}"
+    export DB_DATABASE="${DB_FILE}"
     if [ ! -f "${DB_FILE}" ]; then
         echo "==> Initializing SQLite database at ${DB_FILE}..."
         touch "${DB_FILE}"
     fi
-    chmod 664 "${DB_FILE}" || true
+    chmod 666 "${DB_FILE}" || true
 fi
 
 # Run database migrations
@@ -47,9 +66,7 @@ php artisan view:cache || true
 # Set full permissions for Apache (www-data) AFTER all artisan commands
 chown -R www-data:www-data /var/www/html/storage /var/www/html/bootstrap/cache /var/www/html/database
 chmod -R 777 /var/www/html/storage /var/www/html/bootstrap/cache /var/www/html/database
-if [ -f "${DB_FILE}" ]; then
-    chmod 666 "${DB_FILE}" || true
-fi
+find /var/www/html/database -type f -exec chmod 666 {} + 2>/dev/null || true
 
 echo "==> Application ready! Starting Apache web server..."
 if [ "$#" -gt 0 ]; then
