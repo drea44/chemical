@@ -49,5 +49,11 @@ jobs:
       - name: Run database migrations
         run: php artisan migrate --force
 
+      - name: Check storage permissions
+        run: |
+          chmod -R 777 storage bootstrap/cache
+          php artisan config:clear
+          php artisan route:clear
+
       - name: Execute tests
-        run: php artisan test --ansi
+        run: php artisan test --no-ansi 2>&1
