@@ -43,5 +43,11 @@ jobs:
       - name: Copy environment file
         run: cp .env.testing .env
 
+      - name: Generate application key
+        run: php artisan key:generate
+
+      - name: Run database migrations
+        run: php artisan migrate --force
+
       - name: Execute tests
-        run: php artisan test
+        run: php artisan test --ansi
