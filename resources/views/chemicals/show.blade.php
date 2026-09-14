@@ -184,7 +184,7 @@
 
         <!-- Dates & Expiry -->
         <div class="bg-white border border-gray-200 rounded-lg p-5">
-            <h2 class="text-sm font-semibold text-gray-700 mb-4">Dates & Validity</h2>
+            <h2 class="text-sm font-semibold text-gray-700 mb-4">Dates &amp; Validity</h2>
             <div class="space-y-3">
                 <div class="flex justify-between items-center">
                     <span class="text-xs text-gray-500">Received</span>
@@ -200,7 +200,7 @@
                 <div class="pt-2 border-t border-gray-100">
                     <p class="text-xs text-gray-400">
                         @if($chemical->isExpired())
-                            <span class="text-red-600 font-medium">⚠ Expired {{ $chemical->expiry_date->diffForHumans() }}</span>
+                            <span class="text-red-600 font-medium">&#9888; Expired {{ $chemical->expiry_date->diffForHumans() }}</span>
                         @else
                             Expires {{ $chemical->expiry_date->diffForHumans() }}
                         @endif
@@ -209,6 +209,173 @@
                 @endif
             </div>
         </div>
+
+        <!-- DOKUMEN COA & MSDS -->
+        <div class="bg-white border border-gray-200 rounded-lg overflow-hidden" id="documents-section">
+            <div class="px-5 py-4 border-b border-gray-100 bg-gray-50 flex items-center justify-between">
+                <div class="flex items-center gap-2">
+                    <i data-lucide="file-text" class="w-4 h-4 text-blue-500"></i>
+                    <h2 class="text-sm font-semibold text-gray-700">Dokumen (COA &amp; MSDS)</h2>
+                </div>
+                <span class="text-xs bg-blue-100 text-blue-700 px-2 py-0.5 rounded-full font-medium">
+                    {{ $chemical->documents->count() }} file
+                </span>
+            </div>
+
+            @can('update', $chemical)
+            <!-- Upload Form -->
+            <div class="px-5 py-4 border-b border-gray-100 bg-blue-50">
+                <form method="POST"
+                      action="{{ route('chemicals.documents.store', $chemical) }}"
+                      enctype="multipart/form-data"
+                      id="doc-upload-form">
+                    @csrf
+                    <p class="text-xs font-semibold text-blue-700 mb-3 flex items-center gap-1.5">
+                        <i data-lucide="upload-cloud" class="w-3.5 h-3.5"></i>
+                        Upload Dokumen Baru
+                    </p>
+                    <div class="space-y-3">
+                        <!-- Tipe Dokumen -->
+                        <div>
+                            <label class="block text-xs font-medium text-gray-600 mb-1.5">
+                                Tipe Dokumen <span class="text-red-500">*</span>
+                            </label>
+                            <div class="flex gap-4">
+                                <label class="flex items-center gap-2 cursor-pointer select-none">
+                                    <input type="radio" name="document_type" value="COA" required
+                                           {{ old('document_type') === 'COA' ? 'checked' : '' }}
+                                           class="accent-blue-600">
+                                    <span class="text-xs font-bold px-2 py-0.5 bg-blue-100 text-blue-700 rounded">COA</span>
+                                </label>
+                                <label class="flex items-center gap-2 cursor-pointer select-none">
+                                    <input type="radio" name="document_type" value="MSDS"
+                                           {{ old('document_type') === 'MSDS' ? 'checked' : '' }}
+                                           class="accent-orange-500">
+                                    <span class="text-xs font-bold px-2 py-0.5 bg-orange-100 text-orange-700 rounded">MSDS</span>
+                                </label>
+                            </div>
+                            @error('document_type')
+                                <p class="text-xs text-red-500 mt-1">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                        <!-- File Input -->
+                        <div>
+                            <label class="block text-xs font-medium text-gray-600 mb-1">
+                                File <span class="text-red-500">*</span>
+                            </label>
+                            <input type="file" name="document_file" id="document_file"
+                                   accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                                   class="block w-full text-xs text-gray-500
+                                          file:mr-3 file:py-1.5 file:px-3 file:rounded
+                                          file:border-0 file:text-xs file:font-semibold
+                                          file:bg-blue-600 file:text-white hover:file:bg-blue-700
+                                          cursor-pointer border border-gray-300 rounded bg-white">
+                            <p class="text-xs text-gray-400 mt-1">PDF, DOC, DOCX, JPG, PNG &middot; Maks. 10 MB</p>
+                            @error('document_file')
+                                <p class="text-xs text-red-500 mt-1">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                        <!-- Catatan Opsional -->
+                        <div>
+                            <label class="block text-xs font-medium text-gray-600 mb-1">
+                                Catatan <span class="text-gray-400 font-normal">(opsional)</span>
+                            </label>
+                            <input type="text" name="notes" value="{{ old('notes') }}"
+                                   placeholder="mis. versi terbaru, batch BT2024-001..."
+                                   class="block w-full rounded border border-gray-300 px-3 py-1.5 text-xs
+                                          focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500">
+                            @error('notes')
+                                <p class="text-xs text-red-500 mt-1">{{ $message }}</p>
+                            @enderror
+                        </div>
+
+                        <button type="submit"
+                                class="w-full py-2 bg-blue-600 text-white text-xs font-semibold rounded
+                                       hover:bg-blue-700 active:bg-blue-800 transition-colors
+                                       flex items-center justify-center gap-1.5">
+                            <i data-lucide="upload" class="w-3.5 h-3.5"></i>
+                            Upload Dokumen
+                        </button>
+                    </div>
+                </form>
+            </div>
+            @endcan
+
+            <!-- Daftar Dokumen -->
+            <div class="divide-y divide-gray-50">
+                @forelse($chemical->documents as $doc)
+                <div class="px-5 py-3.5 flex items-start gap-3 hover:bg-gray-50 transition-colors">
+
+                    <!-- Icon -->
+                    <div class="flex-shrink-0 mt-0.5">
+                        @if($doc->document_type === 'COA')
+                            <div class="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center">
+                                <i data-lucide="file-check" class="w-4 h-4 text-blue-600"></i>
+                            </div>
+                        @else
+                            <div class="w-8 h-8 rounded-lg bg-orange-100 flex items-center justify-center">
+                                <i data-lucide="shield-alert" class="w-4 h-4 text-orange-600"></i>
+                            </div>
+                        @endif
+                    </div>
+
+                    <!-- Info -->
+                    <div class="flex-1 min-w-0">
+                        <div class="mb-0.5">
+                            @if($doc->document_type === 'COA')
+                                <span class="text-xs font-bold px-1.5 py-0.5 bg-blue-100 text-blue-700 rounded">COA</span>
+                            @else
+                                <span class="text-xs font-bold px-1.5 py-0.5 bg-orange-100 text-orange-700 rounded">MSDS</span>
+                            @endif
+                        </div>
+                        <p class="text-xs font-medium text-gray-800 truncate" title="{{ $doc->original_name }}">
+                            {{ $doc->original_name }}
+                        </p>
+                        @if($doc->notes)
+                            <p class="text-xs text-gray-400 truncate">{{ $doc->notes }}</p>
+                        @endif
+                        <p class="text-xs text-gray-400 mt-0.5">
+                            {{ $doc->formatted_file_size }}
+                            &middot; {{ $doc->created_at->format('d M Y') }}
+                            &middot; {{ $doc->uploader?->name ?? 'Unknown' }}
+                        </p>
+                    </div>
+
+                    <!-- Actions -->
+                    <div class="flex items-center gap-1 flex-shrink-0 mt-0.5">
+                        <a href="{{ route('chemicals.documents.download', [$chemical, $doc]) }}"
+                           title="Download {{ $doc->original_name }}"
+                           class="p-1.5 rounded hover:bg-blue-50 text-blue-600 transition-colors">
+                            <i data-lucide="download" class="w-3.5 h-3.5"></i>
+                        </a>
+                        @can('update', $chemical)
+                        <form method="POST"
+                              action="{{ route('chemicals.documents.destroy', [$chemical, $doc]) }}"
+                              onsubmit="return confirm('Hapus dokumen \'{{ addslashes($doc->original_name) }}\'?')">
+                            @csrf
+                            @method('DELETE')
+                            <button type="submit" title="Hapus"
+                                    class="p-1.5 rounded hover:bg-red-50 text-red-500 transition-colors">
+                                <i data-lucide="trash-2" class="w-3.5 h-3.5"></i>
+                            </button>
+                        </form>
+                        @endcan
+                    </div>
+                </div>
+                @empty
+                <div class="px-5 py-8 text-center">
+                    <div class="w-12 h-12 rounded-full bg-gray-100 flex items-center justify-center mx-auto mb-3">
+                        <i data-lucide="file-x" class="w-6 h-6 text-gray-300"></i>
+                    </div>
+                    <p class="text-xs text-gray-400 font-medium">Belum ada dokumen diupload</p>
+                    <p class="text-xs text-gray-300 mt-0.5">Upload COA atau MSDS untuk arsip</p>
+                </div>
+                @endforelse
+            </div>
+        </div>
+        <!-- /DOKUMEN COA & MSDS -->
 
         <!-- Meta -->
         <div class="bg-white border border-gray-200 rounded-lg p-5">

@@ -4,6 +4,7 @@ use App\Http\Controllers\Auth\LoginController;
 use App\Http\Controllers\AuditTrailController;
 use App\Http\Controllers\CategoryController;
 use App\Http\Controllers\ChemicalController;
+use App\Http\Controllers\ChemicalDocumentController;
 use App\Http\Controllers\DashboardController;
 use App\Http\Controllers\LocationController;
 use App\Http\Controllers\QRScannerController;
@@ -35,6 +36,13 @@ Route::middleware('auth')->group(function () {
     // Chemical Registry & Label Printing
     Route::get('/chemicals/{chemical}/label', [ChemicalController::class, 'printLabel'])->name('chemicals.label');
     Route::resource('chemicals', ChemicalController::class);
+
+    // Chemical Documents (COA & MSDS)
+    Route::prefix('chemicals/{chemical}/documents')->name('chemicals.documents.')->group(function () {
+        Route::post('/',                                        [ChemicalDocumentController::class, 'store'])->name('store');
+        Route::get('/{document}/download',                     [ChemicalDocumentController::class, 'download'])->name('download');
+        Route::delete('/{document}',                           [ChemicalDocumentController::class, 'destroy'])->name('destroy');
+    });
 
     // Master Data
     Route::resource('categories', CategoryController::class);

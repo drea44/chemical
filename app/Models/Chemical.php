@@ -53,6 +53,11 @@ class Chemical extends Model
         return $this->hasMany(StockAdjustment::class);
     }
 
+    public function documents()
+    {
+        return $this->hasMany(ChemicalDocument::class)->orderBy('created_at', 'desc');
+    }
+
     public function creator()
     {
         return $this->belongsTo(User::class, 'created_by');

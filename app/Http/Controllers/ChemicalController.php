@@ -121,7 +121,7 @@ class ChemicalController extends Controller
     public function show(Chemical $chemical)
     {
         $this->authorize('view', $chemical);
-        $chemical->load(['category', 'location', 'creator', 'stockTransactions.performer']);
+        $chemical->load(['category', 'location', 'creator', 'stockTransactions.performer', 'documents.uploader']);
         return view('chemicals.show', compact('chemical'));
     }
 
