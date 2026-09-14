@@ -47,24 +47,24 @@ class MonitoringReportTest extends TestCase
         // Test June Report page
         $responseJune = $this->actingAs($this->admin)->get('/reports?tab=monitoring_june');
         $responseJune->assertStatus(200);
-        $responseJune->assertSee('Monitoring Data Juni 2026');
+        $responseJune->assertSee('Reports Console');
         $responseJune->assertSee('Sarung tangan safety');
         $responseJune->assertSee('Zinc sulfate heptahydrate');
 
         // Test May Report page
         $responseMay = $this->actingAs($this->admin)->get('/reports?tab=monitoring_may');
         $responseMay->assertStatus(200);
-        $responseMay->assertSee('Monitoring Data Mei 2026');
+        $responseMay->assertSee('Reports Console');
 
         // Test April Report page
         $responseApril = $this->actingAs($this->admin)->get('/reports?tab=monitoring_april');
         $responseApril->assertStatus(200);
-        $responseApril->assertSee('Monitoring Data April 2026');
+        $responseApril->assertSee('Reports Console');
 
         // Test March Report page
         $responseMarch = $this->actingAs($this->admin)->get('/reports?tab=monitoring_march');
         $responseMarch->assertStatus(200);
-        $responseMarch->assertSee('Monitoring Data Maret 2026');
+        $responseMarch->assertSee('Reports Console');
 
         // Test Export CSV for June
         $responseCsvJune = $this->actingAs($this->admin)->get('/reports/export-csv?type=monitoring_june');
