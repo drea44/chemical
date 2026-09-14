@@ -18,7 +18,7 @@ class StockService
     public function stockIn(Chemical $chemical, float $quantity, array $data): StockTransaction
     {
         return DB::transaction(function () use ($chemical, $quantity, $data) {
-            $lockedChemical = Chemical::where('id', $chemical->id)->lockForUpdate()->firstOrFail();
+            $lockedChemical = Chemical::findOrFail($chemical->id);
 
             $stockBefore = (float) $lockedChemical->current_stock;
             $stockAfter  = $stockBefore + $quantity;
@@ -61,7 +61,7 @@ class StockService
     public function stockOut(Chemical $chemical, float $quantity, array $data): StockTransaction
     {
         return DB::transaction(function () use ($chemical, $quantity, $data) {
-            $lockedChemical = Chemical::where('id', $chemical->id)->lockForUpdate()->firstOrFail();
+            $lockedChemical = Chemical::findOrFail($chemical->id);
 
             if ($quantity > (float) $lockedChemical->current_stock) {
                 throw new \RuntimeException(
@@ -110,7 +110,7 @@ class StockService
     public function adjust(Chemical $chemical, float $newStock, array $data): StockAdjustment
     {
         return DB::transaction(function () use ($chemical, $newStock, $data) {
-            $lockedChemical = Chemical::where('id', $chemical->id)->lockForUpdate()->firstOrFail();
+            $lockedChemical = Chemical::findOrFail($chemical->id);
 
             $previousStock = (float) $lockedChemical->current_stock;
             $difference    = $newStock - $previousStock;

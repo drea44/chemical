@@ -49,6 +49,11 @@ jobs:
       - name: Set storage permissions
         run: chmod -R 777 storage bootstrap/cache
 
+      - name: Clear caches
+        run: |
+          php artisan config:clear
+          php artisan view:clear
+          php artisan cache:clear
 
       - name: Execute tests
         run: php artisan test --no-ansi 2>&1
