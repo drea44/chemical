@@ -46,14 +46,9 @@ jobs:
       - name: Generate application key
         run: php artisan key:generate
 
-      - name: Run database migrations
-        run: php artisan migrate --force
+      - name: Set storage permissions
+        run: chmod -R 777 storage bootstrap/cache
 
-      - name: Check storage permissions
-        run: |
-          chmod -R 777 storage bootstrap/cache
-          php artisan config:clear
-          php artisan route:clear
 
       - name: Execute tests
         run: php artisan test --no-ansi 2>&1
