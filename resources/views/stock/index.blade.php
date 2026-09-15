@@ -16,18 +16,10 @@
         <p class="text-sm text-gray-500 mt-1">Audit how localized chemical stock balances transformed transaction-by-transaction.</p>
     </div>
     <div class="flex items-center gap-2.5 flex-shrink-0">
-        @can('stockIn', \App\Models\Chemical::class)
-        <a href="{{ route('stock.in') }}"
-           class="inline-flex items-center gap-2 px-3.5 py-2 bg-emerald-600 hover:bg-emerald-700 text-white text-xs font-semibold rounded-lg shadow-xs transition-colors">
-            <i data-lucide="arrow-down-to-line" class="w-4 h-4"></i> Stock In
-        </a>
-        <a href="{{ route('stock.out') }}"
-           class="inline-flex items-center gap-2 px-3.5 py-2 bg-rose-600 hover:bg-rose-700 text-white text-xs font-semibold rounded-lg shadow-xs transition-colors">
-            <i data-lucide="arrow-up-from-line" class="w-4 h-4"></i> Stock Out
-        </a>
-        <a href="{{ route('stock.adjustment') }}"
-           class="inline-flex items-center gap-2 px-3.5 py-2 border border-gray-300 bg-white hover:bg-gray-50 text-gray-700 text-xs font-semibold rounded-lg shadow-xs transition-colors">
-            <i data-lucide="sliders-horizontal" class="w-4 h-4"></i> Adjust
+        @can('adjustStock')
+        <a href="{{ route('stock.stock-in-out') }}"
+           class="inline-flex items-center gap-2 px-3.5 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-lg shadow-xs transition-colors">
+            <i data-lucide="arrow-left-right" class="w-4 h-4"></i> Stock In Out
         </a>
         @endcan
     </div>

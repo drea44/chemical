@@ -33,8 +33,7 @@
             <i data-lucide="printer" class="w-3.5 h-3.5"></i>Print Label
         </a>
         @can('update', $chemical)
-        <x-button href="{{ route('stock.in', ['chemical' => $chemical->id]) }}" variant="success" icon="arrow-down-circle" size="sm">Stock In</x-button>
-        <x-button href="{{ route('stock.out', ['chemical' => $chemical->id]) }}" variant="danger" icon="arrow-up-circle" size="sm">Stock Out</x-button>
+        <x-button href="{{ route('stock.stock-in-out', ['chemical' => $chemical->id]) }}" variant="success" icon="arrow-left-right" size="sm">Stock In Out</x-button>
         <x-button href="{{ route('chemicals.edit', $chemical) }}" variant="secondary" icon="pencil" size="sm">Edit</x-button>
         @endcan
         <x-button href="{{ route('chemicals.index') }}" variant="secondary" icon="arrow-left" size="sm">Back</x-button>

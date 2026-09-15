@@ -15,8 +15,11 @@ class DatabaseSeeder extends Seeder
             SupplierSeeder::class,
             UserSeeder::class,
             ChemicalSeeder::class,
+            ChemicalMasterListSeeder::class,
+            ChemicalUsageLogSeeder::class,
             StockTransactionSeeder::class,
             AuditLogSeeder::class,
+            MonthlyBalanceSeeder::class,
         ]);
     }
 }

@@ -31,22 +31,10 @@
             'match' => 'locations*',
         ],
         [
-            'label' => 'Stock In',
-            'route' => 'stock.in',
-            'icon'  => 'arrow-down-to-line',
-            'match' => 'stock.in*',
-        ],
-        [
-            'label' => 'Stock Out',
-            'route' => 'stock.out',
-            'icon'  => 'arrow-up-from-line',
-            'match' => 'stock.out*',
-        ],
-        [
-            'label' => 'Stock Adjustment',
-            'route' => 'stock.adjustment',
-            'icon'  => 'sliders-horizontal',
-            'match' => 'stock.adjustment*',
+            'label' => 'Stock In Out',
+            'route' => 'stock.stock-in-out',
+            'icon'  => 'arrow-left-right',
+            'match' => 'stock.stock-in-out*',
         ],
         [
             'label' => 'QR Code Scanner',
@@ -55,9 +43,9 @@
             'match' => 'qr-scanner*',
         ],
         [
-            'label' => 'Transaction History',
+            'label' => 'Log Chemical',
             'route' => 'transactions.index',
-            'icon'  => 'list',
+            'icon'  => 'scroll-text',
             'match' => 'transactions*',
         ],
         [

@@ -132,29 +132,45 @@ class ChemicalStockTest extends TestCase
         $chemical = Chemical::where('status', 'SAFE')->first();
         $initialStock = (float) $chemical->current_stock;
 
-        // Stock In
-        $inResponse = $this->actingAs($this->stockManager)->post(route('stock.in.process'), [
+        // Stock In via Stock In Out
+        $inResponse = $this->actingAs($this->stockManager)->post(route('stock.stock-in-out.process'), [
             'chemical_id'      => $chemical->id,
+            'transaction_type' => 'STOCK_IN',
             'quantity'         => 10,
             'reference_number' => 'PO-2026-999',
-            'reason'           => 'Restocking batch',
+            'reason'           => 'Purchase receipt',
         ]);
-        $inResponse->assertRedirect(route('stock.in'));
+        $inResponse->assertRedirect(route('stock.stock-in-out'));
 
         $chemical->refresh();
         $this->assertEquals($initialStock + 10, $chemical->current_stock);
-
-        // Stock Out
-        $outResponse = $this->actingAs($this->stockManager)->post(route('stock.out.process'), [
+        $this->assertDatabaseHas('stock_transactions', [
             'chemical_id'      => $chemical->id,
+            'transaction_type' => 'STOCK_IN',
+            'quantity'         => 10,
+            'stock_before'     => $initialStock,
+            'stock_after'      => $initialStock + 10,
+        ]);
+
+        // Stock Out via Stock In Out
+        $outResponse = $this->actingAs($this->stockManager)->post(route('stock.stock-in-out.process'), [
+            'chemical_id'      => $chemical->id,
+            'transaction_type' => 'STOCK_OUT',
             'quantity'         => 5,
             'reference_number' => 'EXP-2026-001',
-            'reason'           => 'Lab experiment usage',
+            'reason'           => 'Lab usage',
         ]);
-        $outResponse->assertRedirect(route('stock.out'));
+        $outResponse->assertRedirect(route('stock.stock-in-out'));
 
         $chemical->refresh();
         $this->assertEquals($initialStock + 5, $chemical->current_stock);
+        $this->assertDatabaseHas('stock_transactions', [
+            'chemical_id'      => $chemical->id,
+            'transaction_type' => 'STOCK_OUT',
+            'quantity'         => 5,
+            'stock_before'     => $initialStock + 10,
+            'stock_after'      => $initialStock + 5,
+        ]);
     }
 
     public function test_stock_out_fails_if_insufficient_stock(): void
@@ -162,29 +178,23 @@ class ChemicalStockTest extends TestCase
         $chemical = Chemical::first();
         $excessQuantity = $chemical->current_stock + 9999;
 
-        $response = $this->actingAs($this->stockManager)->post(route('stock.out.process'), [
+        $response = $this->actingAs($this->stockManager)->post(route('stock.stock-in-out.process'), [
             'chemical_id'      => $chemical->id,
+            'transaction_type' => 'STOCK_OUT',
             'quantity'         => $excessQuantity,
             'reference_number' => 'TEST-FAIL',
-            'reason'           => 'Overdraw attempt',
+            'reason'           => 'Lab usage',
         ]);
 
         $response->assertSessionHasErrors('quantity');
     }
 
-    public function test_stock_adjustment(): void
+    public function test_legacy_stock_routes_redirect_to_stock_in_out(): void
     {
-        $chemical = Chemical::first();
-
-        $response = $this->actingAs($this->admin)->post(route('stock.adjustment.process'), [
-            'chemical_id'    => $chemical->id,
-            'adjusted_stock' => 25.5,
-            'reason'         => 'Annual physical audit count discrepancy',
-        ]);
-        $response->assertRedirect(route('stock.adjustment'));
-
-        $chemical->refresh();
-        $this->assertEquals(25.5, $chemical->current_stock);
+        // Old routes redirect to stock.stock-in-out
+        $this->actingAs($this->admin)->get(route('stock.in'))->assertRedirect(route('stock.stock-in-out'));
+        $this->actingAs($this->admin)->get(route('stock.out'))->assertRedirect(route('stock.stock-in-out'));
+        $this->actingAs($this->admin)->get(route('stock.adjustment'))->assertRedirect(route('stock.stock-in-out'));
     }
 
     public function test_chemical_printable_label(): void
@@ -201,12 +211,13 @@ class ChemicalStockTest extends TestCase
     {
         $chemical = Chemical::first();
 
-        // Viewer should get 403 Forbidden
-        $response = $this->actingAs($this->viewer)->post(route('stock.in.process'), [
+        // Viewer should get 403 Forbidden on Stock In Out
+        $response = $this->actingAs($this->viewer)->post(route('stock.stock-in-out.process'), [
             'chemical_id'      => $chemical->id,
+            'transaction_type' => 'STOCK_IN',
             'quantity'         => 10,
             'reference_number' => 'UNAUTH',
-            'reason'           => 'Hacking',
+            'reason'           => 'Purchase receipt',
         ]);
 
         $response->assertStatus(403);
@@ -325,5 +336,129 @@ class ChemicalStockTest extends TestCase
         if ($auditor) {
             $this->actingAs($auditor)->get(route('audit-trail.index'))->assertStatus(200);
         }
+    }
+
+    public function test_log_chemical_matrix_view(): void
+    {
+        $this->seed(\Database\Seeders\ChemicalUsageLogSeeder::class);
+
+        $response = $this->actingAs($this->admin)->get(route('transactions.index', ['month' => '2026-04']));
+        $response->assertStatus(200);
+        $response->assertSee('Log Chemical');
+        $response->assertSee('Chemical inventory & daily usage record - April 2026', false);
+        $response->assertSee('1,10 - phenanthroline chloride monohydrate');
+        $response->assertSee('1-Butanol');
+        $response->assertSee('Saldo awal');
+        $response->assertSee('Penerimaan');
+        $response->assertSee('Pengeluaran');
+        $response->assertSee('Saldo Akhir');
+        $response->assertSee('Date Taken');
+        $response->assertSee('Analyst');
+    }
+
+    public function test_log_chemical_store_date(): void
+    {
+        $response = $this->actingAs($this->admin)->post(route('transactions.dates.store'), [
+            'log_date'     => '2026-04-15',
+            'analyst_name' => 'Budi Santoso',
+        ]);
+
+        $response->assertRedirect(route('transactions.index', ['month' => '2026-04']));
+        $this->assertDatabaseHas('chemical_log_dates', [
+            'log_date'     => '2026-04-15 00:00:00',
+            'analyst_name' => 'Budi Santoso',
+            'period_month' => '2026-04',
+        ]);
+    }
+
+    public function test_log_chemical_update_cell_ajax(): void
+    {
+        $this->seed(\Database\Seeders\ChemicalUsageLogSeeder::class);
+
+        $chemical = Chemical::first();
+        $date     = \App\Models\ChemicalLogDate::first();
+
+        $response = $this->actingAs($this->admin)->postJson(route('transactions.update-cell'), [
+            'chemical_id' => $chemical->id,
+            'log_date_id' => $date->id,
+            'field'       => 'take_1',
+            'value'       => 35.5,
+        ]);
+
+        $response->assertStatus(200)
+            ->assertJson([
+                'success' => true,
+                'value'   => 35.5,
+            ]);
+
+        $this->assertDatabaseHas('chemical_daily_usages', [
+            'chemical_id' => $chemical->id,
+            'log_date_id' => $date->id,
+            'take_1'      => 35.5,
+        ]);
+    }
+
+    public function test_log_chemical_update_balance_ajax(): void
+    {
+        $chemical = Chemical::first();
+
+        $response = $this->actingAs($this->admin)->postJson(route('transactions.update-balance'), [
+            'chemical_id'  => $chemical->id,
+            'period_month' => '2026-04',
+            'field'        => 'saldo_awal',
+            'value'        => 500,
+        ]);
+
+        $response->assertStatus(200)
+            ->assertJson([
+                'success' => true,
+                'value'   => 500,
+            ]);
+
+        $this->assertDatabaseHas('chemical_monthly_balances', [
+            'chemical_id'  => $chemical->id,
+            'period_month' => '2026-04',
+            'saldo_awal'   => 500,
+        ]);
+    }
+
+    public function test_log_chemical_update_chemical_ajax(): void
+    {
+        $chemical = Chemical::first();
+
+        $response = $this->actingAs($this->admin)->postJson(route('transactions.update-chemical'), [
+            'chemical_id' => $chemical->id,
+            'field'       => 'chemical_name',
+            'value'       => 'Renamed Test Chemical',
+        ]);
+
+        $response->assertStatus(200)
+            ->assertJson([
+                'success' => true,
+                'value'   => 'Renamed Test Chemical',
+            ]);
+
+        $this->assertDatabaseHas('chemicals', [
+            'id'            => $chemical->id,
+            'chemical_name' => 'Renamed Test Chemical',
+        ]);
+    }
+
+    public function test_log_chemical_quick_add(): void
+    {
+        $response = $this->actingAs($this->admin)->post(route('transactions.quick-add-chemical'), [
+            'chemical_name' => 'Quick Add Reagent',
+            'unit'          => 'g',
+            'period_month'  => '2026-04',
+            'saldo_awal'    => 100,
+            'penerimaan'    => 50,
+        ]);
+
+        // Redirect includes ?month=2026-04&highlight=<id>, so check URL contains the month param
+        $response->assertRedirectContains('month=2026-04');
+        $this->assertDatabaseHas('chemicals', [
+            'chemical_name' => 'Quick Add Reagent',
+            'unit'          => 'g',
+        ]);
     }
 }

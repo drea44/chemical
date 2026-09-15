@@ -68,6 +68,16 @@ class Chemical extends Model
         return $this->belongsTo(User::class, 'updated_by');
     }
 
+    public function dailyUsages()
+    {
+        return $this->hasMany(ChemicalDailyUsage::class);
+    }
+
+    public function monthlyBalances()
+    {
+        return $this->hasMany(ChemicalMonthlyBalance::class);
+    }
+
     // Business Logic
     public function updateStatus(int $expiryWarningDays = 30): void
     {

@@ -51,7 +51,14 @@ Route::middleware('auth')->group(function () {
 
     // Stock Management
     Route::prefix('stock')->name('stock.')->group(function () {
-        Route::get('/',           [StockController::class, 'index'])->name('index');
+        // Stock Change History
+        Route::get('/', [StockController::class, 'index'])->name('index');
+
+        // ─── Stock In Out (unified entry point) ─────────────────────────────
+        Route::get('/stock-in-out',  [StockController::class, 'showStockInOut'])->name('stock-in-out');
+        Route::post('/stock-in-out', [StockController::class, 'processStockInOut'])->name('stock-in-out.process');
+
+        // ─── Legacy redirects (backward compat – prevent 404 on old URLs) ───
         Route::get('/in',         [StockController::class, 'showStockIn'])->name('in');
         Route::post('/in',        [StockController::class, 'processStockIn'])->name('in.process');
         Route::get('/out',        [StockController::class, 'showStockOut'])->name('out');
@@ -60,8 +67,17 @@ Route::middleware('auth')->group(function () {
         Route::post('/adjustment',[StockController::class, 'processAdjustment'])->name('adjustment.process');
     });
 
-    // Transactions
-    Route::get('/transactions', [TransactionController::class, 'index'])->name('transactions.index');
+    // Log Chemical (Inventory & Daily Usage Record)
+    Route::prefix('transactions')->name('transactions.')->group(function () {
+        Route::get('/',                     [TransactionController::class, 'index'])->name('index');
+        Route::post('/dates',               [TransactionController::class, 'storeDate'])->name('dates.store');
+        Route::delete('/dates/{date}',      [TransactionController::class, 'deleteDate'])->name('dates.destroy');
+        Route::post('/update-cell',         [TransactionController::class, 'updateCell'])->name('update-cell');
+        Route::post('/update-balance',      [TransactionController::class, 'updateBalance'])->name('update-balance');
+        Route::post('/update-chemical',     [TransactionController::class, 'updateChemical'])->name('update-chemical');
+        Route::post('/update-analyst',      [TransactionController::class, 'updateAnalyst'])->name('update-analyst');
+        Route::post('/quick-add-chemical',   [TransactionController::class, 'quickAddChemical'])->name('quick-add-chemical');
+    });
 
     // QR Scanner
     Route::get('/qr-scanner',        [QRScannerController::class, 'index'])->name('qr-scanner.index');

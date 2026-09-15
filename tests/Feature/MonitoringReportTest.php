@@ -23,8 +23,8 @@ class MonitoringReportTest extends TestCase
 
     public function test_monitoring_reports_and_catalog_are_intact(): void
     {
-        // Check catalog has all 250 items including Sarung tangan safety and Azometin
-        $this->assertSame(250, Chemical::count());
+        // Check catalog has all 250+ items including Sarung tangan safety and Azometin
+        $this->assertGreaterThanOrEqual(250, Chemical::count());
         $this->assertNotNull(Chemical::where('chemical_name', 'Azometin')->first());
         $this->assertNotNull(Chemical::where('chemical_name', 'Sarung tangan safety')->first());
 
