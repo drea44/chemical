@@ -31,7 +31,7 @@
             'match' => 'locations*',
         ],
         [
-            'label' => 'Stock In Out',
+            'label' => 'Stock Adjustment',
             'route' => 'stock.stock-in-out',
             'icon'  => 'arrow-left-right',
             'match' => 'stock.stock-in-out*',
@@ -43,10 +43,22 @@
             'match' => 'qr-scanner*',
         ],
         [
-            'label' => 'Log Chemical',
-            'route' => 'transactions.index',
-            'icon'  => 'scroll-text',
-            'match' => 'transactions*',
+            'label'    => 'Log Chemical',
+            'route'    => 'transactions.master-report',
+            'icon'     => 'scroll-text',
+            'match'    => 'transactions*',
+            'children' => [
+                [
+                    'label' => 'Master Report',
+                    'route' => 'transactions.master-report',
+                    'match' => 'transactions.master-report*',
+                ],
+                [
+                    'label' => 'Warning Stock',
+                    'route' => 'transactions.warning-stock',
+                    'match' => 'transactions.warning-stock*',
+                ],
+            ],
         ],
         [
             'label' => 'Stock Change History',
@@ -116,19 +128,61 @@
                 $active  = request()->routeIs($item['match']);
             @endphp
             @if($allowed)
-            <a href="{{ route($item['route']) }}"
-               class="relative flex items-center gap-3 px-3 py-2 rounded text-sm font-medium transition-all duration-150"
-               style="{{ $active
-                   ? 'background:rgba(37,99,235,0.18); color:#ffffff; font-weight:600;'
-                   : 'color:rgba(255,255,255,0.55);' }}"
-               onmouseover="if(!{{ $active ? 'true' : 'false' }}) { this.style.background='rgba(255,255,255,0.06)'; this.style.color='rgba(255,255,255,0.9)'; }"
-               onmouseout="if(!{{ $active ? 'true' : 'false' }}) { this.style.background=''; this.style.color='rgba(255,255,255,0.55)'; }">
-                @if($active)
-                <span class="absolute left-0 top-1/2 -translate-y-1/2 h-5 w-0.5 rounded-r" style="background:#3b82f6;"></span>
+                @if(isset($item['children']))
+                    <div x-data="{ open: {{ $active ? 'true' : 'false' }} }" class="space-y-0.5">
+                        <button type="button"
+                                @click="open = !open"
+                                class="w-full relative flex items-center justify-between px-3 py-2 rounded text-sm font-medium transition-all duration-150"
+                                style="{{ $active
+                                    ? 'background:rgba(37,99,235,0.18); color:#ffffff; font-weight:600;'
+                                    : 'color:rgba(255,255,255,0.55);' }}"
+                                onmouseover="if(!{{ $active ? 'true' : 'false' }}) { this.style.background='rgba(255,255,255,0.06)'; this.style.color='rgba(255,255,255,0.9)'; }"
+                                onmouseout="if(!{{ $active ? 'true' : 'false' }}) { this.style.background=''; this.style.color='rgba(255,255,255,0.55)'; }">
+                            <div class="flex items-center gap-3">
+                                @if($active)
+                                <span class="absolute left-0 top-1/2 -translate-y-1/2 h-5 w-0.5 rounded-r" style="background:#3b82f6;"></span>
+                                @endif
+                                <i data-lucide="{{ $item['icon'] }}" class="w-4 h-4 flex-shrink-0"></i>
+                                <span>{{ $item['label'] }}</span>
+                            </div>
+                            <svg class="w-3.5 h-3.5 text-gray-400 transition-transform duration-150"
+                                 :class="open ? 'rotate-180' : ''"
+                                 fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                            </svg>
+                        </button>
+                        <div x-show="open" class="pl-7 pr-1 space-y-0.5 pt-0.5 pb-1">
+                            @foreach($item['children'] as $child)
+                                @php
+                                    $childActive = request()->routeIs($child['match']) || (request()->routeIs('transactions.index') && $child['route'] === 'transactions.master-report');
+                                @endphp
+                                <a href="{{ route($child['route']) }}"
+                                   class="block px-3 py-1.5 rounded text-xs font-medium transition-all duration-150"
+                                   style="{{ $childActive
+                                       ? 'background:rgba(37,99,235,0.25); color:#60a5fa; font-weight:600;'
+                                       : 'color:rgba(255,255,255,0.45);' }}"
+                                   onmouseover="if(!{{ $childActive ? 'true' : 'false' }}) { this.style.background='rgba(255,255,255,0.06)'; this.style.color='rgba(255,255,255,0.85)'; }"
+                                   onmouseout="if(!{{ $childActive ? 'true' : 'false' }}) { this.style.background=''; this.style.color='rgba(255,255,255,0.45)'; }">
+                                    {{ $child['label'] }}
+                                </a>
+                            @endforeach
+                        </div>
+                    </div>
+                @else
+                <a href="{{ route($item['route']) }}"
+                   class="relative flex items-center gap-3 px-3 py-2 rounded text-sm font-medium transition-all duration-150"
+                   style="{{ $active
+                       ? 'background:rgba(37,99,235,0.18); color:#ffffff; font-weight:600;'
+                       : 'color:rgba(255,255,255,0.55);' }}"
+                   onmouseover="if(!{{ $active ? 'true' : 'false' }}) { this.style.background='rgba(255,255,255,0.06)'; this.style.color='rgba(255,255,255,0.9)'; }"
+                   onmouseout="if(!{{ $active ? 'true' : 'false' }}) { this.style.background=''; this.style.color='rgba(255,255,255,0.55)'; }">
+                    @if($active)
+                    <span class="absolute left-0 top-1/2 -translate-y-1/2 h-5 w-0.5 rounded-r" style="background:#3b82f6;"></span>
+                    @endif
+                    <i data-lucide="{{ $item['icon'] }}" class="w-4 h-4 flex-shrink-0"></i>
+                    <span>{{ $item['label'] }}</span>
+                </a>
                 @endif
-                <i data-lucide="{{ $item['icon'] }}" class="w-4 h-4 flex-shrink-0"></i>
-                <span>{{ $item['label'] }}</span>
-            </a>
             @endif
         @endforeach
     </nav>

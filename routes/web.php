@@ -69,7 +69,10 @@ Route::middleware('auth')->group(function () {
 
     // Log Chemical (Inventory & Daily Usage Record)
     Route::prefix('transactions')->name('transactions.')->group(function () {
-        Route::get('/',                     [TransactionController::class, 'index'])->name('index');
+        Route::get('/',                     [TransactionController::class, 'masterReport'])->name('index');
+        Route::get('/master-report',        [TransactionController::class, 'masterReport'])->name('master-report');
+        Route::get('/warning-stock',        [TransactionController::class, 'warningStock'])->name('warning-stock');
+        Route::get('/matrix',               [TransactionController::class, 'index'])->name('matrix');
         Route::post('/dates',               [TransactionController::class, 'storeDate'])->name('dates.store');
         Route::delete('/dates/{date}',      [TransactionController::class, 'deleteDate'])->name('dates.destroy');
         Route::post('/update-cell',         [TransactionController::class, 'updateCell'])->name('update-cell');

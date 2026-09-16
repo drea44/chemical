@@ -110,6 +110,22 @@
 @section('content')
 <div x-data="logChemicalMatrix()" class="space-y-4 font-sans">
 
+    {{-- Top Tab Navigation --}}
+    <div class="flex items-center gap-2 border-b border-gray-200 pb-3">
+        <a href="{{ route('transactions.master-report') }}" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-semibold text-gray-600 bg-white border border-gray-200 hover:bg-gray-50 transition-colors">
+            <i data-lucide="file-spreadsheet" class="w-4 h-4 text-amber-500"></i>
+            Master Report
+        </a>
+        <a href="{{ route('transactions.warning-stock') }}" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-semibold text-gray-600 bg-white border border-gray-200 hover:bg-gray-50 transition-colors">
+            <i data-lucide="alert-triangle" class="w-4 h-4 text-red-500"></i>
+            Warning Stock
+        </a>
+        <a href="{{ route('transactions.matrix') }}" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-semibold text-white bg-blue-600 shadow-sm transition-colors">
+            <i data-lucide="calendar-days" class="w-4 h-4"></i>
+            Daily Usage Sheet
+        </a>
+    </div>
+
     {{-- Top Header Section --}}
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
         <div>

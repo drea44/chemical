@@ -19,7 +19,7 @@
         @can('adjustStock')
         <a href="{{ route('stock.stock-in-out') }}"
            class="inline-flex items-center gap-2 px-3.5 py-2 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold rounded-lg shadow-xs transition-colors">
-            <i data-lucide="arrow-left-right" class="w-4 h-4"></i> Stock In Out
+            <i data-lucide="arrow-left-right" class="w-4 h-4"></i> Stock Adjustment
         </a>
         @endcan
     </div>

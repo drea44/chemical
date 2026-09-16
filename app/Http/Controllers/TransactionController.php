@@ -14,6 +14,204 @@ use Illuminate\Support\Str;
 
 class TransactionController extends Controller
 {
+    /**
+     * Master Report: Report Monitoring Chemical across months (March, April, May, June)
+     */
+    public function masterReport(Request $request)
+    {
+        $search = trim($request->get('search', ''));
+        $year   = $request->get('year', '2026');
+
+        // Target months for the monitoring table (March - June)
+        $reportMonths = [
+            $year . '-03' => 'March',
+            $year . '-04' => 'April',
+            $year . '-05' => 'May',
+            $year . '-06' => 'June',
+        ];
+
+        // 1. Build Chemical query
+        $query = Chemical::query();
+
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('chemical_name', 'like', "%{$search}%")
+                  ->orWhere('chemical_code', 'like', "%{$search}%")
+                  ->orWhere('cas_number', 'like', "%{$search}%");
+            });
+        }
+
+        // Prioritize reference chemical sequence
+        $prioritizedNames = self::getReferenceChemicalNames();
+        $caseOrder = 'CASE ';
+        foreach ($prioritizedNames as $pos => $name) {
+            $escaped = addslashes($name);
+            $caseOrder .= "WHEN chemical_name = '{$escaped}' THEN {$pos} ";
+        }
+        $caseOrder .= 'ELSE 9999 END, id ASC';
+
+        $perPage   = (int) $request->get('per_page', 50);
+        $chemicals = $query->orderByRaw($caseOrder)
+            ->paginate($perPage)
+            ->withQueryString();
+
+        // 2. Eager-load monthly balances for page chemicals
+        $chemicalIds = $chemicals->pluck('id');
+        $balances = ChemicalMonthlyBalance::whereIn('chemical_id', $chemicalIds)
+            ->whereIn('period_month', array_keys($reportMonths))
+            ->get()
+            ->groupBy('chemical_id');
+
+        // Map per chemical: [month => amount]
+        $matrix = [];
+        foreach ($chemicals as $chem) {
+            $chemBalances = $balances->get($chem->id, collect())->keyBy('period_month');
+            $matrix[$chem->id] = [];
+
+            foreach ($reportMonths as $mKey => $mLabel) {
+                $mb = $chemBalances->get($mKey);
+                if ($mb && $mb->saldo_awal !== null) {
+                    $matrix[$chem->id][$mKey] = (float) $mb->saldo_awal;
+                } else {
+                    $matrix[$chem->id][$mKey] = null;
+                }
+            }
+        }
+
+        $totalChemicals = Chemical::count();
+
+        return view('transactions.master-report', compact(
+            'chemicals',
+            'reportMonths',
+            'matrix',
+            'search',
+            'year',
+            'totalChemicals'
+        ));
+    }
+
+    /**
+     * Warning Stock: Chemical Stock Warning with automated OK / Time to Refill status
+     */
+    public function warningStock(Request $request)
+    {
+        $search       = trim($request->get('search', ''));
+        $statusFilter = $request->get('status', 'all');
+
+        // 1. Base query
+        $query = Chemical::query();
+
+        if ($search) {
+            $query->where(function ($q) use ($search) {
+                $q->where('chemical_name', 'like', "%{$search}%")
+                  ->orWhere('chemical_code', 'like', "%{$search}%")
+                  ->orWhere('cas_number', 'like', "%{$search}%");
+            });
+        }
+
+        // Status filter: OK vs Time to Refill
+        if ($statusFilter === 'ok') {
+            $query->where(function ($q) {
+                $q->where(function ($s) {
+                    $s->where('minimum_stock', '>', 0)
+                      ->whereColumn('current_stock', '>', 'minimum_stock');
+                })->orWhere(function ($s) {
+                    $s->where(function ($z) {
+                        $z->whereNull('minimum_stock')->orWhere('minimum_stock', '<=', 0);
+                    })->where('current_stock', '>=', 0);
+                });
+            });
+        } elseif ($statusFilter === 'refill') {
+            $query->where(function ($q) {
+                $q->where(function ($s) {
+                    $s->where('minimum_stock', '>', 0)
+                      ->whereColumn('current_stock', '<=', 'minimum_stock');
+                })->orWhere(function ($s) {
+                    $s->where(function ($z) {
+                        $z->whereNull('minimum_stock')->orWhere('minimum_stock', '<=', 0);
+                    })->where('current_stock', '<', 0);
+                });
+            });
+        }
+
+        // Ordering: exact reference chemical sequence
+        $prioritizedNames = self::getReferenceChemicalNames();
+        $caseOrder = 'CASE ';
+        foreach ($prioritizedNames as $pos => $name) {
+            $escaped = addslashes($name);
+            $caseOrder .= "WHEN chemical_name = '{$escaped}' THEN {$pos} ";
+        }
+        $caseOrder .= 'ELSE 9999 END, id ASC';
+
+        $perPage   = (int) $request->get('per_page', 50);
+        $chemicals = $query->orderByRaw($caseOrder)
+            ->paginate($perPage)
+            ->withQueryString();
+
+        // 2. Eager-load baseline Stok Awal from initial/March monthly balance
+        $chemicalIds = $chemicals->pluck('id');
+        $baselineBalances = ChemicalMonthlyBalance::whereIn('chemical_id', $chemicalIds)
+            ->where('period_month', '2026-03')
+            ->get()
+            ->keyBy('chemical_id');
+
+        // Also fetch any earliest monthly balance for items not in 2026-03
+        $missingIds = $chemicalIds->diff($baselineBalances->keys());
+        if ($missingIds->isNotEmpty()) {
+            $earliestBalances = ChemicalMonthlyBalance::whereIn('chemical_id', $missingIds)
+                ->orderBy('period_month', 'asc')
+                ->get()
+                ->keyBy('chemical_id');
+            $baselineBalances = $baselineBalances->union($earliestBalances);
+        }
+
+        // 3. Prepare display rows
+        $rows = [];
+        foreach ($chemicals as $c) {
+            $mb = $baselineBalances->get($c->id);
+            $stokAwal = $mb ? (float)$mb->saldo_awal : (float)$c->current_stock;
+            $minStock = (float)($c->minimum_stock ?? 0);
+            $remaining = (float)($c->current_stock ?? 0);
+
+            if ($minStock > 0) {
+                $status = $remaining > $minStock ? 'OK' : 'Time to Refill';
+            } else {
+                $status = $remaining < 0 ? 'Time to Refill' : 'OK';
+            }
+
+            $rows[$c->id] = [
+                'stok_awal'       => $stokAwal,
+                'min_stock'       => $minStock,
+                'remaining_stock' => $remaining,
+                'status'          => $status,
+            ];
+        }
+
+        // 4. Overall counts for badges/counters
+        $totalCount = Chemical::count();
+        $refillCount = Chemical::where(function ($q) {
+            $q->where(function ($s) {
+                $s->where('minimum_stock', '>', 0)
+                  ->whereColumn('current_stock', '<=', 'minimum_stock');
+            })->orWhere(function ($s) {
+                $s->where(function ($z) {
+                    $z->whereNull('minimum_stock')->orWhere('minimum_stock', '<=', 0);
+                })->where('current_stock', '<', 0);
+            });
+        })->count();
+        $okCount = $totalCount - $refillCount;
+
+        return view('transactions.warning-stock', compact(
+            'chemicals',
+            'rows',
+            'search',
+            'statusFilter',
+            'totalCount',
+            'okCount',
+            'refillCount'
+        ));
+    }
+
     public function index(Request $request)
     {
         // 1. Determine active month/year (defaults to current month)
