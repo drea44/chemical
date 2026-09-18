@@ -36,7 +36,6 @@ class User extends Authenticatable
         ];
     }
 
-    // Relationships
     public function stockTransactions()
     {
         return $this->hasMany(StockTransaction::class, 'performed_by');
@@ -62,7 +61,6 @@ class User extends Authenticatable
         return $this->hasMany(StockAdjustment::class, 'approved_by');
     }
 
-    // Helpers
     public function isAdmin(): bool
     {
         return $this->role === 'ADMIN';
@@ -107,3 +105,4 @@ class User extends Authenticatable
         };
     }
 }
+

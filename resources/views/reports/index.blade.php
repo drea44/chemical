@@ -10,13 +10,11 @@
 
 @section('content')
 
-{{-- Header --}}
 <div class="mb-5">
     <h1 class="text-xl font-bold text-gray-900">Reports Console</h1>
     <p class="text-sm text-gray-500 mt-0.5">Aggregate inventory audits, material turnover metrics, safety logs, and stock statistics.</p>
 </div>
 
-{{-- Tab Navigation --}}
 <div class="flex flex-wrap gap-2 mb-4">
     @foreach([
         ['tab' => 'inventory',   'label' => 'Inventory Report'],
@@ -36,7 +34,6 @@
     @endforeach
 </div>
 
-{{-- Filter Row + Export Buttons --}}
 <div class="flex flex-wrap items-center justify-between gap-3 mb-5">
     <div class="flex items-center gap-2">
         <div class="relative">
@@ -72,7 +69,6 @@
     </div>
 </div>
 
-{{-- Stats Cards --}}
 <div class="grid grid-cols-2 lg:grid-cols-4 gap-4 mb-5">
     <div class="bg-white border border-gray-200 rounded-lg p-5">
         <p class="text-xs font-semibold text-gray-400 uppercase tracking-widest mb-2">Total Audited Items</p>
@@ -92,7 +88,6 @@
     </div>
 </div>
 
-{{-- Main Table --}}
 <div class="bg-white border border-gray-200 rounded-lg overflow-hidden mb-5">
     <div class="overflow-x-auto">
         <table class="w-full text-sm">
@@ -157,7 +152,6 @@
     </div>
 </div>
 
-{{-- Stock Allocation Chart --}}
 <div class="bg-white border border-gray-200 rounded-lg p-6">
     <h3 class="text-sm font-semibold text-gray-800 mb-6">Stock Allocation by Chemical Category</h3>
     <div class="flex items-end justify-around gap-4">
@@ -183,3 +177,4 @@
 </div>
 
 @endsection
+

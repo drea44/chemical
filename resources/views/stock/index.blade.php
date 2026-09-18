@@ -9,7 +9,6 @@
 
 @section('content')
 
-{{-- Header --}}
 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
     <div>
         <h1 class="text-2xl font-bold text-gray-900 tracking-tight">Stock Change History</h1>
@@ -25,11 +24,9 @@
     </div>
 </div>
 
-{{-- Filters --}}
 <div class="bg-white border border-gray-200/80 rounded-xl px-4 py-3 mb-5 shadow-xs">
     <form method="GET" class="flex flex-wrap items-center gap-3">
 
-        {{-- Chemical --}}
         <div class="relative min-w-[200px]">
             <select name="chemical" onchange="this.form.submit()"
                     class="w-full appearance-none rounded-lg border border-gray-200 bg-white pl-3.5 pr-8 py-2 text-xs font-medium text-gray-700 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 cursor-pointer">
@@ -41,7 +38,6 @@
             <i data-lucide="chevron-down" class="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none"></i>
         </div>
 
-        {{-- Date Range --}}
         <div class="relative min-w-[170px]">
             <select name="date_range" onchange="this.form.submit()"
                     class="w-full appearance-none rounded-lg border border-gray-200 bg-white pl-3.5 pr-8 py-2 text-xs font-medium text-gray-700 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 cursor-pointer">
@@ -55,7 +51,6 @@
             <i data-lucide="chevron-down" class="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none"></i>
         </div>
 
-        {{-- Activity Type --}}
         <div class="relative min-w-[180px]">
             <select name="type" onchange="this.form.submit()"
                     class="w-full appearance-none rounded-lg border border-gray-200 bg-white pl-3.5 pr-8 py-2 text-xs font-medium text-gray-700 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 cursor-pointer">
@@ -67,7 +62,6 @@
             <i data-lucide="chevron-down" class="absolute right-2.5 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400 pointer-events-none"></i>
         </div>
 
-        {{-- Search --}}
         <div class="relative flex-1 min-w-[220px]">
             <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"></i>
             <input type="text" name="search" value="{{ request('search') }}"
@@ -84,7 +78,6 @@
     </form>
 </div>
 
-{{-- Table --}}
 <div class="bg-white border border-gray-200/80 rounded-xl overflow-hidden shadow-xs">
     <div class="overflow-x-auto">
         <table class="w-full text-left text-xs text-gray-600">
@@ -128,12 +121,11 @@
                     }
                 @endphp
                 <tr class="hover:bg-gray-50/60 transition-colors">
-                    {{-- DATE/TIME --}}
+
                     <td class="px-5 py-3.5 font-medium text-gray-600 whitespace-nowrap">
                         {{ $dateStr }}
                     </td>
 
-                    {{-- CHEMICAL & BATCH --}}
                     <td class="px-4 py-3.5 whitespace-nowrap">
                         @if($tx->chemical)
                         <a href="{{ route('chemicals.show', $tx->chemical_id) }}" class="font-bold text-gray-900 hover:text-blue-600 transition-colors block">
@@ -147,7 +139,6 @@
                         </span>
                     </td>
 
-                    {{-- ACTIVITY TYPE --}}
                     <td class="px-4 py-3.5 whitespace-nowrap">
                         @if($tx->transaction_type === 'STOCK_IN')
                             <span class="inline-flex items-center px-2.5 py-1 rounded text-[10px] font-extrabold tracking-wider bg-blue-50 text-blue-600">
@@ -164,12 +155,10 @@
                         @endif
                     </td>
 
-                    {{-- PREV BALANCE --}}
                     <td class="px-4 py-3.5 text-right font-medium text-gray-500 whitespace-nowrap">
                         {{ number_format((float)$tx->stock_before, 2) }} {{ $tx->unit }}
                     </td>
 
-                    {{-- ADJUSTMENT --}}
                     <td class="px-4 py-3.5 text-right font-bold whitespace-nowrap">
                         @if($isPos)
                             <span class="text-emerald-600 inline-flex items-center gap-0.5">
@@ -186,12 +175,10 @@
                         @endif
                     </td>
 
-                    {{-- NEW BALANCE --}}
                     <td class="px-4 py-3.5 text-right font-bold text-gray-900 whitespace-nowrap">
                         {{ number_format((float)$tx->stock_after, 2) }} {{ $tx->unit }}
                     </td>
 
-                    {{-- OPERATOR --}}
                     <td class="px-5 py-3.5 text-gray-700 whitespace-nowrap font-medium">
                         {{ $tx->performer?->name ?? 'Dr. Jimmy Dane' }}
                     </td>
@@ -209,7 +196,6 @@
         </table>
     </div>
 
-    {{-- Pagination Footer matching Image 1 --}}
     <div class="px-5 py-3.5 bg-white border-t border-gray-100 flex flex-col sm:flex-row items-center justify-between gap-3">
         <p class="text-xs text-gray-500 font-medium">
             Showing {{ $transactions->firstItem() ?? 0 }} to {{ $transactions->lastItem() ?? 0 }} of {{ $transactions->total() }} records
@@ -217,7 +203,7 @@
 
         @if($transactions->hasPages())
         <div class="flex items-center gap-1.5 text-xs">
-            {{-- Previous --}}
+
             @if($transactions->onFirstPage())
                 <span class="px-3 py-1.5 text-gray-400 border border-gray-200 rounded-lg cursor-not-allowed font-medium">Previous</span>
             @else
@@ -225,7 +211,6 @@
                    class="px-3 py-1.5 text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors font-medium">Previous</a>
             @endif
 
-            {{-- Pages --}}
             @foreach($transactions->getUrlRange(max(1, $transactions->currentPage() - 2), min($transactions->lastPage(), $transactions->currentPage() + 2)) as $page => $url)
                 @if($page == $transactions->currentPage())
                     <span class="w-8 h-8 flex items-center justify-center font-bold text-white bg-blue-600 rounded-lg">{{ $page }}</span>
@@ -240,7 +225,6 @@
                    class="w-8 h-8 flex items-center justify-center text-gray-600 hover:bg-gray-100 rounded-lg transition-colors font-medium">{{ $transactions->lastPage() }}</a>
             @endif
 
-            {{-- Next --}}
             @if($transactions->hasMorePages())
                 <a href="{{ $transactions->nextPageUrl() }}"
                    class="px-3 py-1.5 text-gray-600 border border-gray-200 rounded-lg hover:bg-gray-50 transition-colors font-medium">Next</a>
@@ -253,3 +237,4 @@
 </div>
 
 @endsection
+

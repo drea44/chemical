@@ -7,11 +7,9 @@
     <title>@yield('title', 'Dashboard') — Chemical Stock OS</title>
     <meta name="description" content="Chemical Stock OS — Enterprise chemical inventory management system">
 
-    <!-- Fonts -->
     <link rel="preconnect" href="https://fonts.googleapis.com">
     <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
 
-    <!-- Vite Assets -->
     @vite(['resources/css/app.css', 'resources/js/app.js'])
 
     @stack('styles')
@@ -19,7 +17,7 @@
 <body class="h-full bg-gray-50 font-inter antialiased" x-data="{ sidebarOpen: window.innerWidth >= 1024 }" @resize.window="if (window.innerWidth >= 1024) { sidebarOpen = true }">
 
 <div class="min-h-screen flex flex-col">
-    <!-- Backdrop for mobile sidebar drawer -->
+
     <div x-show="sidebarOpen"
          @click="sidebarOpen = false"
          class="fixed inset-0 bg-slate-900/60 backdrop-blur-xs z-40 lg:hidden"
@@ -32,19 +30,15 @@
          x-cloak>
     </div>
 
-    <!-- Sidebar -->
     <x-sidebar />
 
-    <!-- Main Content -->
     <div class="flex-1 flex flex-col transition-all duration-200 ease-in-out min-w-0"
          :class="sidebarOpen ? 'lg:ml-64' : 'lg:ml-0'">
 
-        <!-- Topbar -->
         <x-topbar :title="$title ?? 'Dashboard'" :breadcrumb="$breadcrumb ?? []" />
 
-        <!-- Page Content -->
         <main class="flex-1 p-4 sm:p-6 w-full max-w-full overflow-x-hidden">
-            <!-- Flash Messages -->
+
             @if(session('success'))
                 <x-alert type="success" :message="session('success')" class="mb-5" />
             @endif
@@ -55,7 +49,6 @@
                 <x-alert type="warning" :message="session('warning')" class="mb-5" />
             @endif
 
-            {{-- BUG-08 Fix: Temporary password display (one-time, not in generic flash) --}}
             @if(session('temp_password'))
                 <div class="mb-5 rounded-xl border border-amber-300 bg-amber-50 p-4" x-data="{ copied: false }">
                     <div class="flex items-start gap-3">
@@ -79,11 +72,9 @@
                 </div>
             @endif
 
-
             @yield('content')
         </main>
 
-        <!-- Footer -->
         <footer class="px-4 sm:px-6 py-3 border-t border-gray-200 bg-white">
             <p class="text-xs text-gray-400">Chemical Stock OS &copy; {{ date('Y') }} — Enterprise Chemical Inventory Management</p>
         </footer>
@@ -93,3 +84,4 @@
 @stack('scripts')
 </body>
 </html>
+

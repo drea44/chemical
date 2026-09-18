@@ -24,7 +24,6 @@
     <form method="POST" action="{{ route('chemicals.store') }}" class="space-y-6">
         @csrf
 
-        <!-- Section 1: Basic Information -->
         <div class="bg-white border border-gray-200 rounded-lg overflow-hidden">
             <div class="px-6 py-4 border-b border-gray-100 bg-gray-50">
                 <h2 class="text-sm font-semibold text-gray-700 flex items-center gap-2">
@@ -53,7 +52,6 @@
             </div>
         </div>
 
-        <!-- Section 2: Inventory -->
         <div class="bg-white border border-gray-200 rounded-lg overflow-hidden">
             <div class="px-6 py-4 border-b border-gray-100 bg-gray-50">
                 <h2 class="text-sm font-semibold text-gray-700 flex items-center gap-2">
@@ -70,7 +68,6 @@
             </div>
         </div>
 
-        <!-- Section 3: Storage -->
         <div class="bg-white border border-gray-200 rounded-lg overflow-hidden">
             <div class="px-6 py-4 border-b border-gray-100 bg-gray-50">
                 <h2 class="text-sm font-semibold text-gray-700 flex items-center gap-2">
@@ -88,7 +85,6 @@
             </div>
         </div>
 
-        <!-- Section 4: Safety -->
         <div class="bg-white border border-gray-200 rounded-lg overflow-hidden">
             <div class="px-6 py-4 border-b border-gray-100 bg-gray-50">
                 <h2 class="text-sm font-semibold text-gray-700 flex items-center gap-2">
@@ -103,7 +99,6 @@
             </div>
         </div>
 
-        <!-- Section 5: Dates -->
         <div class="bg-white border border-gray-200 rounded-lg overflow-hidden">
             <div class="px-6 py-4 border-b border-gray-100 bg-gray-50">
                 <h2 class="text-sm font-semibold text-gray-700 flex items-center gap-2">
@@ -116,14 +111,12 @@
             </div>
         </div>
 
-        <!-- Section 6: Notes -->
         <div class="bg-white border border-gray-200 rounded-lg p-6">
             <label class="block text-sm font-medium text-gray-700 mb-2">Additional Notes</label>
             <textarea name="notes" rows="3" placeholder="Any additional information about this chemical..."
                       class="block w-full rounded border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500">{{ old('notes') }}</textarea>
         </div>
 
-        <!-- Actions -->
         <div class="flex items-center justify-end gap-3 pb-4">
             <x-button href="{{ route('chemicals.index') }}" variant="secondary">Cancel</x-button>
             <x-button type="submit" icon="check">Register Chemical & Generate QR</x-button>
@@ -132,3 +125,4 @@
 </div>
 
 @endsection
+

@@ -28,7 +28,6 @@ class Chemical extends Model
         'maximum_stock'  => 'decimal:4',
     ];
 
-    // Relationships
     public function category()
     {
         return $this->belongsTo(ChemicalCategory::class, 'category_id');
@@ -79,7 +78,6 @@ class Chemical extends Model
         return $this->hasMany(ChemicalMonthlyBalance::class);
     }
 
-    // Business Logic
     public function updateStatus(int $expiryWarningDays = 30): void
     {
         $status = 'SAFE';
@@ -150,3 +148,4 @@ class Chemical extends Model
         return rtrim(rtrim(number_format($val, 4), '0'), '.');
     }
 }
+

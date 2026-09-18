@@ -12,7 +12,7 @@ return new class extends Migration
             $table->id();
             $table->string('key')->unique();
             $table->text('value')->nullable();
-            $table->string('type')->default('string'); // string, integer, boolean, json
+            $table->string('type')->default('string');
             $table->string('description')->nullable();
             $table->timestamps();
         });
@@ -23,3 +23,4 @@ return new class extends Migration
         Schema::dropIfExists('system_settings');
     }
 };
+

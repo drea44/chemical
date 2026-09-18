@@ -41,9 +41,6 @@ class StockTransactionSeeder extends Seeder
 
         $transCounter = 1;
 
-        // ══════════════════════════════════════════════════════════════════════════
-        // 1. SALDO AWAL MONITIRING MARET 2026 (INITIAL BALANCE TRANSACTIONS)
-        // ══════════════════════════════════════════════════════════════════════════
         $marchStartingByName = [
             'Aluminium kalium sulfat dodecahydrat' => 2000.0,
             'Ammonia solution 25 %' => 2000.0,
@@ -93,9 +90,6 @@ class StockTransactionSeeder extends Seeder
             }
         }
 
-        // ══════════════════════════════════════════════════════════════════════════
-        // 2. TRANSAKSI PENGELUARAN MARET 2026
-        // ══════════════════════════════════════════════════════════════════════════
         $marchTakes = [
             ['Ammonia solution 25 %', '2026-03-13 09:00:00', 'Tyas', 142.5, 'Take 1'],
             ['Amonium chloride', '2026-03-13 09:00:00', 'Tyas', 16.125, 'Take 1'],
@@ -144,9 +138,6 @@ class StockTransactionSeeder extends Seeder
             }
         }
 
-        // ══════════════════════════════════════════════════════════════════════════
-        // 3. TRANSAKSI PENERIMAAN & PENGELUARAN APRIL 2026
-        // ══════════════════════════════════════════════════════════════════════════
         $aprilRestocks = [
             ['Acetone p.a', 10000],
             ['Aquabides', 15000],
@@ -232,9 +223,6 @@ class StockTransactionSeeder extends Seeder
             }
         }
 
-        // ══════════════════════════════════════════════════════════════════════════
-        // 4. TRANSAKSI PENERIMAAN & PENGELUARAN MEI 2026
-        // ══════════════════════════════════════════════════════════════════════════
         $mayRestocks = [
             ['Sarung tangan ukuran L', 7],
         ];
@@ -313,9 +301,6 @@ class StockTransactionSeeder extends Seeder
             }
         }
 
-        // ══════════════════════════════════════════════════════════════════════════
-        // 5. TRANSAKSI PENERIMAAN & PENGELUARAN JUNI 2026
-        // ══════════════════════════════════════════════════════════════════════════
         $juneRestocks = [
             ['Barium chloride dihydrate', 500],
             ['Kertas saring 41 Diameter 125 mm Whatman', 26],

@@ -27,3 +27,4 @@ class Supplier extends Model
         return $this->hasMany(Chemical::class, 'supplier', 'name');
     }
 }
+

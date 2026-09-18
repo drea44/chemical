@@ -26,3 +26,4 @@ class UserPolicy
         return $user->role === 'ADMIN' && $user->id !== $target->id;
     }
 }
+

@@ -19,7 +19,6 @@ class ChemicalUsageLogSeeder extends Seeder
         $category = ChemicalCategory::first();
         $location = ChemicalLocation::first();
 
-        // 30 chemicals exactly as depicted in Gambar 2
         $referenceChemicals = [
             ['name' => '1,10 - phenanthroline chloride monohydrate', 'saldo_awal' => 20, 'unit' => 'g', 'penerimaan' => 0],
             ['name' => '1,10 - phenanthroline monohydrate', 'saldo_awal' => 1.1, 'unit' => 'g', 'penerimaan' => 0],
@@ -53,7 +52,6 @@ class ChemicalUsageLogSeeder extends Seeder
             ['name' => 'Boric acid', 'saldo_awal' => 500, 'unit' => 'g', 'penerimaan' => 0],
         ];
 
-        // Create initial log dates for April 2026
         $date1 = ChemicalLogDate::where('period_month', '2026-04')->where('analyst_name', 'Fitria')->first();
         if (!$date1) {
             $date1 = ChemicalLogDate::create([
@@ -127,7 +125,6 @@ class ChemicalUsageLogSeeder extends Seeder
                 $chemical->save();
             }
 
-            // Monthly balance for April 2026
             ChemicalMonthlyBalance::updateOrCreate(
                 [
                     'chemical_id'  => $chemical->id,
@@ -139,7 +136,6 @@ class ChemicalUsageLogSeeder extends Seeder
                 ]
             );
 
-            // Give sample usage for row 1 & row 6
             if ($index === 0) {
                 ChemicalDailyUsage::updateOrCreate(
                     ['chemical_id' => $chemical->id, 'log_date_id' => $date1->id],
@@ -162,3 +158,4 @@ class ChemicalUsageLogSeeder extends Seeder
         }
     }
 }
+

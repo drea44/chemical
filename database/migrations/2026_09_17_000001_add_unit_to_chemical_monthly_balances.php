@@ -9,7 +9,7 @@ return new class extends Migration
     public function up(): void
     {
         Schema::table('chemical_monthly_balances', function (Blueprint $table) {
-            // Unit per bulan — bisa berbeda tiap bulan, nullable berarti tampil kosong
+
             $table->string('unit', 50)->nullable()->after('period_month');
         });
     }
@@ -21,3 +21,4 @@ return new class extends Migration
         });
     }
 };
+

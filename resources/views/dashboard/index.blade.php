@@ -9,7 +9,6 @@
 
 @section('content')
 
-<!-- Page Header -->
 <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mb-6">
     <div>
         <h1 class="text-xl font-bold text-gray-900">Overview</h1>
@@ -22,7 +21,6 @@
     </div>
 </div>
 
-<!-- Stat Cards -->
 <div class="grid grid-cols-2 sm:grid-cols-3 xl:grid-cols-6 gap-3 sm:gap-4 mb-6">
     <x-stat-card label="Total Chemicals"  value="{{ $stats['total_chemicals'] }}"  icon="flask-conical"   color="blue"   href="{{ route('chemicals.index') }}" />
     <x-stat-card label="Total Stock"      value="{{ number_format($stats['total_stock'], 0) }}" icon="package" color="blue" />
@@ -32,10 +30,8 @@
     <x-stat-card label="Expired"          value="{{ $stats['expired'] }}"           icon="x-circle"      color="red"   href="{{ route('chemicals.index', ['status' => 'EXPIRED']) }}" />
 </div>
 
-<!-- Charts Row -->
 <div class="grid grid-cols-1 lg:grid-cols-3 gap-5 mb-6">
 
-    <!-- Stock Movement Bar Chart -->
     <div class="lg:col-span-2 bg-white border border-gray-200 rounded-lg p-5">
         <div class="flex items-center justify-between mb-4">
             <div>
@@ -50,7 +46,6 @@
         <canvas id="stockMovementChart" height="200"></canvas>
     </div>
 
-    <!-- Status Doughnut Chart -->
     <div class="bg-white border border-gray-200 rounded-lg p-5">
         <div class="mb-4">
             <h2 class="text-sm font-semibold text-gray-900">Stock Status</h2>
@@ -82,10 +77,8 @@
     </div>
 </div>
 
-<!-- Bottom Row: Recent Activity + Critical Alerts -->
 <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
 
-    <!-- Recent Activity -->
     <div class="lg:col-span-2 bg-white border border-gray-200 rounded-lg">
         <div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">
             <h2 class="text-sm font-semibold text-gray-900">Recent Inventory Activity</h2>
@@ -125,7 +118,6 @@
         </div>
     </div>
 
-    <!-- Critical Alerts -->
     <div class="bg-white border border-gray-200 rounded-lg">
         <div class="flex items-center justify-between px-5 py-4 border-b border-gray-100">
             <h2 class="text-sm font-semibold text-gray-900">Critical Alerts</h2>
@@ -178,7 +170,6 @@
 const movementData = @json($stockMovement);
 const statusData   = @json($stockStatus);
 
-// Bar Chart — Stock Movement
 new Chart(document.getElementById('stockMovementChart'), {
     type: 'bar',
     data: {
@@ -210,7 +201,6 @@ new Chart(document.getElementById('stockMovementChart'), {
     }
 });
 
-// Doughnut Chart — Stock Status
 new Chart(document.getElementById('stockStatusChart'), {
     type: 'doughnut',
     data: {
@@ -236,3 +226,4 @@ new Chart(document.getElementById('stockStatusChart'), {
 });
 </script>
 @endpush
+

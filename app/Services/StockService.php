@@ -12,9 +12,7 @@ use Illuminate\Support\Str;
 
 class StockService
 {
-    /**
-     * Process a stock-in transaction.
-     */
+
     public function stockIn(Chemical $chemical, float $quantity, array $data): StockTransaction
     {
         return DB::transaction(function () use ($chemical, $quantity, $data) {
@@ -28,7 +26,6 @@ class StockService
             $lockedChemical->updated_by = Auth::id();
             $lockedChemical->save();
 
-            // Synchronize passed chemical instance
             $chemical->current_stock = $stockAfter;
             $chemical->status = $lockedChemical->status;
 
@@ -55,9 +52,6 @@ class StockService
         });
     }
 
-    /**
-     * Process a stock-out transaction. Throws exception if insufficient stock.
-     */
     public function stockOut(Chemical $chemical, float $quantity, array $data): StockTransaction
     {
         return DB::transaction(function () use ($chemical, $quantity, $data) {
@@ -77,7 +71,6 @@ class StockService
             $lockedChemical->updated_by = Auth::id();
             $lockedChemical->save();
 
-            // Synchronize passed chemical instance
             $chemical->current_stock = $stockAfter;
             $chemical->status = $lockedChemical->status;
 
@@ -104,9 +97,6 @@ class StockService
         });
     }
 
-    /**
-     * Process a stock adjustment.
-     */
     public function adjust(Chemical $chemical, float $newStock, array $data): StockAdjustment
     {
         return DB::transaction(function () use ($chemical, $newStock, $data) {
@@ -120,11 +110,9 @@ class StockService
             $lockedChemical->updated_by = Auth::id();
             $lockedChemical->save();
 
-            // Synchronize passed chemical instance
             $chemical->current_stock = $newStock;
             $chemical->status = $lockedChemical->status;
 
-            // Also create a stock transaction record for ledger
             StockTransaction::create([
                 'transaction_code' => $this->generateTransactionCode(),
                 'chemical_id'      => $lockedChemical->id,
@@ -161,10 +149,6 @@ class StockService
         });
     }
 
-    /**
-     * Create an initial stock transaction when a new chemical is registered.
-     * Used by ChemicalController to ensure consistent code generation.
-     */
     public function createInitialStockTransaction(Chemical $chemical): StockTransaction
     {
         return StockTransaction::create([
@@ -187,23 +171,14 @@ class StockService
         ]);
     }
 
-    /**
-     * Generate a collision-safe transaction code.
-     *
-     * Uses timestamp + microseconds + random suffix to ensure uniqueness
-     * even under concurrent requests (BUG-02 fix). The UNIQUE database
-     * constraint on transaction_code is the final safety net.
-     */
     public function generateTransactionCode(): string
     {
         return 'TXN-' . now()->format('YmdHis') . '-' . strtoupper(Str::random(4));
     }
 
-    /**
-     * Generate a collision-safe adjustment code (BUG-03 fix).
-     */
     public function generateAdjustmentCode(): string
     {
         return 'ADJ-' . now()->format('YmdHis') . '-' . strtoupper(Str::random(4));
     }
 }
+

@@ -106,7 +106,7 @@
     style="background:#131b2e;"
     :class="sidebarOpen ? 'translate-x-0' : '-translate-x-full'"
 >
-    <!-- Logo -->
+
     <div class="flex items-center justify-between px-5 py-4 border-b" style="border-color:rgba(255,255,255,0.07);">
         <div class="flex items-center gap-3">
             <div class="flex-shrink-0 w-8 h-8 rounded flex items-center justify-center" style="background:#2563eb;">
@@ -119,13 +119,12 @@
                 <p class="text-xs leading-tight" style="color:rgba(255,255,255,0.35);">v1.0.0 Enterprise</p>
             </div>
         </div>
-        <!-- Close button on mobile -->
+
         <button @click="sidebarOpen = false" class="lg:hidden p-1.5 rounded text-gray-400 hover:text-white hover:bg-slate-800 transition-colors" aria-label="Close menu">
             <i data-lucide="x" class="w-5 h-5"></i>
         </button>
     </div>
 
-    <!-- Nav -->
     <nav class="flex-1 overflow-y-auto py-3 px-2 space-y-0.5">
         @foreach($navItems as $item)
             @php
@@ -192,7 +191,6 @@
         @endforeach
     </nav>
 
-    <!-- User Info at bottom -->
     <div class="px-3 py-3 border-t" style="border-color:rgba(255,255,255,0.07);">
         <div class="flex items-center gap-3 px-2 py-2 rounded" style="background:rgba(255,255,255,0.04);">
             <div class="w-7 h-7 rounded-full flex items-center justify-center text-xs font-bold text-white flex-shrink-0"
@@ -206,3 +204,4 @@
         </div>
     </div>
 </aside>
+

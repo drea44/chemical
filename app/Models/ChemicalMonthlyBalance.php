@@ -27,3 +27,4 @@ class ChemicalMonthlyBalance extends Model
         return $this->belongsTo(Chemical::class);
     }
 }
+

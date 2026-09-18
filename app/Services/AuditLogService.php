@@ -96,3 +96,4 @@ class AuditLogService
         static::log('adjusted', 'Stock', 'Chemical', $chemicalId, ['stock' => $before], ['stock' => $after, 'difference' => $after - $before]);
     }
 }
+

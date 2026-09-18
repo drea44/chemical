@@ -21,8 +21,6 @@ class ChemicalDocument extends Model
         'uploaded_by',
     ];
 
-    // ─── Relationships ────────────────────────────────────────────────────────
-
     public function chemical()
     {
         return $this->belongsTo(Chemical::class);
@@ -33,11 +31,6 @@ class ChemicalDocument extends Model
         return $this->belongsTo(User::class, 'uploaded_by');
     }
 
-    // ─── Accessors ────────────────────────────────────────────────────────────
-
-    /**
-     * Returns human-readable file size (e.g., "1.2 MB")
-     */
     public function getFormattedFileSizeAttribute(): string
     {
         $bytes = $this->file_size ?? 0;
@@ -51,17 +44,11 @@ class ChemicalDocument extends Model
         }
     }
 
-    /**
-     * Full public URL to the file
-     */
     public function getPublicUrlAttribute(): string
     {
         return Storage::url($this->file_path);
     }
 
-    /**
-     * Badge color for document type
-     */
     public function getTypeBadgeColorAttribute(): string
     {
         return match($this->document_type) {
@@ -71,11 +58,9 @@ class ChemicalDocument extends Model
         };
     }
 
-    /**
-     * Check if file is a PDF (for inline view)
-     */
     public function getIsPdfAttribute(): bool
     {
         return $this->mime_type === 'application/pdf';
     }
 }
+

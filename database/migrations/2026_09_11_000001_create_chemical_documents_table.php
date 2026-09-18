@@ -14,7 +14,7 @@ return new class extends Migration
             $table->enum('document_type', ['COA', 'MSDS']);
             $table->string('original_name');
             $table->string('file_path');
-            $table->unsignedBigInteger('file_size')->nullable(); // in bytes
+            $table->unsignedBigInteger('file_size')->nullable();
             $table->string('mime_type')->nullable();
             $table->text('notes')->nullable();
             $table->foreignId('uploaded_by')->nullable()->constrained('users')->onDelete('set null');
@@ -27,3 +27,4 @@ return new class extends Migration
         Schema::dropIfExists('chemical_documents');
     }
 };
+

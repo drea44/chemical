@@ -15,9 +15,8 @@ class ChemicalMasterListSeeder extends Seeder
         $category = ChemicalCategory::first();
         $location = ChemicalLocation::first();
 
-        // Complete list of all 248 chemicals from all 12 reference sheets
         $chemicals = [
-            // --- Sheet 1 (1-21) ---
+
             ['no' => 1,   'name' => '1,10 - phenanthroline chloride monohydrate',                         'unit' => 'g'],
             ['no' => 2,   'name' => '1,10 - phenanthroline monohydrate',                                  'unit' => 'g'],
             ['no' => 3,   'name' => '1,8-Dihydroxy-2-(4-Sulfophenylazo)-naphthalene-3,6-disulfonic acid trisodium salt', 'unit' => 'g'],
@@ -40,7 +39,6 @@ class ChemicalMasterListSeeder extends Seeder
             ['no' => 20,  'name' => 'Ammonium acetate',                                                   'unit' => 'g'],
             ['no' => 21,  'name' => 'Ammonium fluoride',                                                  'unit' => 'g'],
 
-            // --- Sheet 2 (22-42) ---
             ['no' => 22,  'name' => 'Ammonium heptamolybdate tetrahydrate',                               'unit' => 'g'],
             ['no' => 23,  'name' => 'Ammonium iron (III) sulfate dodecahydrate',                          'unit' => 'g'],
             ['no' => 24,  'name' => 'Amonium chloride',                                                   'unit' => 'g'],
@@ -63,7 +61,6 @@ class ChemicalMasterListSeeder extends Seeder
             ['no' => 41,  'name' => 'Chloramin T trihydrate',                                             'unit' => 'g'],
             ['no' => 42,  'name' => 'Chloroform',                                                         'unit' => 'ml'],
 
-            // --- Sheet 3 (43-63) ---
             ['no' => 43,  'name' => 'Chromatropic Acid disodium salt',                                    'unit' => 'g'],
             ['no' => 44,  'name' => 'Chromium (VI) oxide',                                                'unit' => 'g'],
             ['no' => 45,  'name' => 'Citric acid monohydrate',                                            'unit' => 'g'],
@@ -86,7 +83,6 @@ class ChemicalMasterListSeeder extends Seeder
             ['no' => 62,  'name' => 'Devarda alloy',                                                      'unit' => 'g'],
             ['no' => 63,  'name' => 'Di-ammonium oxalate monohydrate',                                    'unit' => 'g'],
 
-            // --- Sheet 4 (64-84) ---
             ['no' => 64,  'name' => 'Di-amonium hydrogen phosphate',                                      'unit' => 'g'],
             ['no' => 65,  'name' => 'Dikalium hydrogen phosphat',                                         'unit' => 'g'],
             ['no' => 66,  'name' => 'Dimedone',                                                           'unit' => 'g'],
@@ -109,7 +105,6 @@ class ChemicalMasterListSeeder extends Seeder
             ['no' => 83,  'name' => 'Glass fiber filter 0,45 mikron 47 mm 10 pk PALL',                    'unit' => 'pcs'],
             ['no' => 84,  'name' => 'Gelatine',                                                           'unit' => 'g'],
 
-            // --- Sheet 5 (85-105) ---
             ['no' => 85,  'name' => 'Hexamethylene-tetramine',                                            'unit' => 'g'],
             ['no' => 86,  'name' => 'Hydrazinium sulfate',                                                'unit' => 'g'],
             ['no' => 87,  'name' => 'Hydrochloric acid 37%',                                              'unit' => 'ml'],
@@ -132,7 +127,6 @@ class ChemicalMasterListSeeder extends Seeder
             ['no' => 104, 'name' => 'Kertas saring 41 Diameter 125 mm Whatman',                           'unit' => 'pcs'],
             ['no' => 105, 'name' => 'Kertas saring 42 Diameter 125 mm Whatman',                           'unit' => 'pcs'],
 
-            // --- Sheet 6 (106-126) ---
             ['no' => 106, 'name' => 'Kertas saring 43 Diameter 125 mm Whatman',                           'unit' => 'pcs'],
             ['no' => 107, 'name' => 'Kertas saring 0,45 mikron Diameter 47 mm Whatman',                   'unit' => 'pcs'],
             ['no' => 108, 'name' => 'Kertas saring 0,45 mikron Diameter 47 mm PALL',                      'unit' => 'pcs'],
@@ -155,7 +149,6 @@ class ChemicalMasterListSeeder extends Seeder
             ['no' => 125, 'name' => 'MacConkey Agar',                                                     'unit' => 'g'],
             ['no' => 126, 'name' => 'Magnesium (II) sulfate monohydrate',                                 'unit' => 'g'],
 
-            // --- Sheet 7 (127-148) ---
             ['no' => 127, 'name' => 'Magnesium chloride',                                                 'unit' => 'g'],
             ['no' => 128, 'name' => 'Magnesium chloride hexahydrate',                                     'unit' => 'g'],
             ['no' => 129, 'name' => 'Magnesium oxide',                                                    'unit' => 'g'],
@@ -179,7 +172,6 @@ class ChemicalMasterListSeeder extends Seeder
             ['no' => 147, 'name' => 'Micropipette plus vol 0,5 ml',                                       'unit' => 'pcs'],
             ['no' => 148, 'name' => 'MUG EC Broth',                                                       'unit' => 'g'],
 
-            // --- Sheet 8 (149-169) ---
             ['no' => 149, 'name' => 'N-(1-Naphthyl) ethylenediamine dihydro-chloride',                    'unit' => 'g'],
             ['no' => 150, 'name' => 'N,N-diethyl-1,4 phenyle diammonium sulfat',                          'unit' => 'g'],
             ['no' => 151, 'name' => 'N,N-dimethyl-1,4 phenylene diamonium dichloride',                    'unit' => 'g'],
@@ -202,7 +194,6 @@ class ChemicalMasterListSeeder extends Seeder
             ['no' => 168, 'name' => 'Pewarnaan gram (crystal violet)',                                    'unit' => 'ml'],
             ['no' => 169, 'name' => 'Pewarnaan gram (lugol)',                                             'unit' => 'ml'],
 
-            // --- Sheet 9 (170-190) ---
             ['no' => 170, 'name' => 'Pewarnaan gram (safranin)',                                          'unit' => 'ml'],
             ['no' => 171, 'name' => 'Phenol',                                                             'unit' => 'g'],
             ['no' => 172, 'name' => 'Phenol Red (Phenol sulfonphthalein)',                                'unit' => 'g'],
@@ -225,7 +216,6 @@ class ChemicalMasterListSeeder extends Seeder
             ['no' => 189, 'name' => 'Potassium Iodide',                                                   'unit' => 'g'],
             ['no' => 190, 'name' => 'Potassium nitrate',                                                  'unit' => 'g'],
 
-            // --- Sheet 10 (191-211) ---
             ['no' => 191, 'name' => 'Potassium permanganat',                                              'unit' => 'g'],
             ['no' => 192, 'name' => 'Potassium peroxodisulfate',                                          'unit' => 'g'],
             ['no' => 193, 'name' => 'Potassium sodium tartrate tetrahydrate',                             'unit' => 'g'],
@@ -248,7 +238,6 @@ class ChemicalMasterListSeeder extends Seeder
             ['no' => 210, 'name' => 'Sodium chloride',                                                   'unit' => 'g'],
             ['no' => 211, 'name' => 'Sodium dihydrogen phospate dihydrate',                              'unit' => 'g'],
 
-            // --- Sheet 11 (212-232) ---
             ['no' => 212, 'name' => 'Sodium fluoride',                                                   'unit' => 'g'],
             ['no' => 213, 'name' => 'Sodium hydrogen Carbonate',                                         'unit' => 'g'],
             ['no' => 214, 'name' => 'Sodium hydrogen sulfite',                                           'unit' => 'g'],
@@ -271,7 +260,6 @@ class ChemicalMasterListSeeder extends Seeder
             ['no' => 231, 'name' => 'Susu bear brand',                                                   'unit' => 'pcs'],
             ['no' => 232, 'name' => 'Thiocetamide',                                                      'unit' => 'g'],
 
-            // --- Sheet 12 (233-248) ---
             ['no' => 233, 'name' => 'Tin (II) chloride',                                                 'unit' => 'g'],
             ['no' => 234, 'name' => 'Tisu paseo',                                                        'unit' => 'pcs'],
             ['no' => 235, 'name' => 'Titriplex',                                                         'unit' => 'g'],
@@ -298,13 +286,12 @@ class ChemicalMasterListSeeder extends Seeder
         foreach ($chemicals as $item) {
             $baseName = trim(preg_replace('/\s*\(\d+\)$/', '', $item['name']));
 
-            // Find existing by exact or normalized name
             $chemical = Chemical::where('chemical_name', $item['name'])
                 ->orWhere('chemical_name', $baseName)
                 ->first();
 
             if (!$chemical) {
-                // Generate a unique code
+
                 $code = 'CHM-REF-' . str_pad((string)$item['no'], 3, '0', STR_PAD_LEFT);
                 if (Chemical::where('chemical_code', $code)->exists()) {
                     $code = 'CHM-REF-' . str_pad((string)$item['no'], 3, '0', STR_PAD_LEFT) . '-' . strtoupper(bin2hex(random_bytes(2)));
@@ -323,7 +310,7 @@ class ChemicalMasterListSeeder extends Seeder
                 ]);
                 $added++;
             } else {
-                // Ensure correct unit if empty
+
                 if (empty($chemical->unit) && !empty($item['unit'])) {
                     $chemical->unit = $item['unit'];
                     $chemical->save();
@@ -333,7 +320,6 @@ class ChemicalMasterListSeeder extends Seeder
                 }
             }
 
-            // Ensure monthly balance records exist for April 2026 and current month
             foreach (array_unique(['2026-04', $currentMonth]) as $month) {
                 ChemicalMonthlyBalance::firstOrCreate(
                     [
@@ -351,3 +337,4 @@ class ChemicalMasterListSeeder extends Seeder
         $this->command->info("Chemical Master List seeded: {$added} added, {$updated} updated unit, {$existed} already existed (total: " . count($chemicals) . ").");
     }
 }
+

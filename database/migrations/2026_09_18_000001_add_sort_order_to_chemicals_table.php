@@ -16,7 +16,6 @@ return new class extends Migration
             });
         }
 
-        // Initialize sort_order for all existing chemicals based on reference sequence
         $prioritizedNames = TransactionController::getReferenceChemicalNames();
         $caseOrder = 'CASE ';
         foreach ($prioritizedNames as $pos => $name) {
@@ -41,3 +40,4 @@ return new class extends Migration
         }
     }
 };
+

@@ -55,7 +55,6 @@
         background-color: #fff1f2;
     }
 
-    /* Status Badges strictly matching Reference Image 2 */
     .status-cell-ok {
         background-color: #00c853 !important;
         color: #000000 !important;
@@ -106,7 +105,6 @@
         color: #111827;
     }
 
-    /* Edit Modal */
     .modal-overlay {
         position: fixed; inset: 0; background: rgba(0,0,0,0.45);
         display: flex; align-items: center; justify-content: center;
@@ -139,7 +137,6 @@
 @section('content')
 <div x-data="warningStockEdit()" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-5">
 
-    {{-- Top Tab Navigation --}}
     <div class="flex flex-wrap items-center justify-between gap-3 border-b border-gray-200 pb-4">
         <div class="flex items-center gap-2">
             <a href="{{ route('transactions.master-report') }}" class="tab-pill inactive">
@@ -157,9 +154,9 @@
         </div>
 
         <div class="flex flex-wrap items-center gap-2">
-            {{-- Search & Filter Controls --}}
+
             <form action="{{ route('transactions.warning-stock') }}" method="GET" class="flex flex-wrap items-center gap-2">
-                {{-- Status Filter Dropdown --}}
+
                 <select name="status"
                         onchange="this.form.submit()"
                         class="py-1.5 px-3 text-sm border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-red-500 focus:border-red-500 bg-white">
@@ -174,7 +171,6 @@
                     </option>
                 </select>
 
-                {{-- Search input --}}
                 <div class="relative">
                     <input type="text"
                            name="search"
@@ -205,7 +201,6 @@
         </div>
     </div>
 
-    {{-- Alert summary banner if refill needed --}}
     @if($refillCount > 0)
     <div class="flex items-center justify-between bg-red-50 border border-red-200 rounded-lg p-3 text-sm text-red-700">
         <div class="flex items-center gap-2">
@@ -220,7 +215,6 @@
     </div>
     @endif
 
-    {{-- Flash success --}}
     @if(session('success'))
     <div class="flex items-center gap-2 px-4 py-2.5 bg-green-50 border border-green-200 rounded-lg text-sm text-green-800 font-medium"
          x-data="{show:true}" x-show="show" x-transition>
@@ -230,15 +224,12 @@
     </div>
     @endif
 
-    {{-- Main Card --}}
     <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
 
-        {{-- Header Banner matching Reference Image 2 --}}
         <div class="warning-banner">
             CHEMICAL STOCK WARNING
         </div>
 
-        {{-- Responsive Table Container --}}
         <div class="overflow-x-auto">
             <table class="warning-table">
                 <thead>
@@ -325,7 +316,6 @@
             </table>
         </div>
 
-        {{-- Footer & Pagination --}}
         <div class="p-4 border-t border-gray-200 bg-gray-50 flex flex-col sm:flex-row items-center justify-between gap-3">
             <p class="text-xs text-gray-500">
                 Menampilkan <span class="font-medium text-gray-700">{{ $chemicals->firstItem() ?? 0 }}</span> - <span class="font-medium text-gray-700">{{ $chemicals->lastItem() ?? 0 }}</span> dari <span class="font-medium text-gray-700">{{ $chemicals->total() }}</span> chemical
@@ -337,7 +327,6 @@
 
     </div>
 
-    {{-- ═══════════════════════ EDIT MODAL ═══════════════════════ --}}
     <div class="modal-overlay" x-show="showEditModal" x-cloak @click.self="showEditModal=false"
          x-transition:enter="transition ease-out duration-200"
          x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
@@ -381,7 +370,6 @@
         </div>
     </div>
 
-    {{-- ═══════════════════════ DELETE CONFIRM ═══════════════════════ --}}
     <div class="modal-overlay" x-show="showDeleteModal" x-cloak @click.self="showDeleteModal=false"
          x-transition:enter="transition ease-out duration-150" x-transition:enter-start="opacity-0"
          x-transition:enter-end="opacity-100">
@@ -405,7 +393,6 @@
         </div>
     </div>
 
-    {{-- ═══════════════════════ MODAL TAMBAH CHEMICAL ═══════════════════════ --}}
     <div class="modal-overlay" x-show="showAddModal" x-cloak @click.self="showAddModal=false"
          x-transition:enter="transition ease-out duration-150" x-transition:enter-start="opacity-0"
          x-transition:enter-end="opacity-100">
@@ -513,28 +500,24 @@ function warningStockEdit() {
             try {
                 const cleanMinStock = String(this.edit.min_stock || '').replace(',', '.').trim();
 
-                // Update chemical name
                 await fetch('{{ route('transactions.update-chemical') }}', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrf },
                     body: JSON.stringify({ chemical_id: this.edit.id, field: 'chemical_name', value: this.edit.name })
                 });
 
-                // Update unit
                 await fetch('{{ route('transactions.update-chemical') }}', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrf },
                     body: JSON.stringify({ chemical_id: this.edit.id, field: 'unit', value: this.edit.unit })
                 });
 
-                // Update minimum_stock
                 await fetch('{{ route('transactions.update-minimum-stock') }}', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrf },
                     body: JSON.stringify({ chemical_id: this.edit.id, minimum_stock: cleanMinStock })
                 });
 
-                // Update DOM
                 const nameEl = document.getElementById('ws-name-' + this.edit.id);
                 if (nameEl) nameEl.textContent = this.edit.name;
 
@@ -593,3 +576,4 @@ function warningStockEdit() {
 @endpush
 
 @endsection
+

@@ -9,7 +9,7 @@ class ChemicalPolicy
 {
     public function viewAny(User $user): bool
     {
-        return true; // All roles can view chemical list
+        return true;
     }
 
     public function view(User $user, ?Chemical $chemical = null): bool
@@ -32,3 +32,4 @@ class ChemicalPolicy
         return $user->role === 'ADMIN';
     }
 }
+

@@ -83,7 +83,6 @@ class UserController extends Controller
             return back()->with('error', 'Anda tidak dapat menonaktifkan akun Anda sendiri.');
         }
 
-        // BUG-09: Determine action BEFORE updating to avoid inverted message
         $newStatus = $user->status === 'active' ? 'inactive' : 'active';
         $action    = $newStatus === 'active' ? 'activated' : 'deactivated';
 
@@ -104,12 +103,10 @@ class UserController extends Controller
         $user->update(['password' => Hash::make($tempPassword)]);
         AuditLogService::log('updated', 'User', 'User', $user->id, null, ['action' => 'password_reset']);
 
-        // BUG-08: Do NOT put plaintext password in flash message.
-        // Store in a dedicated one-time session key so it can be displayed
-        // once in the UI with a copy button, then discarded.
         return back()
             ->with('temp_password', $tempPassword)
             ->with('temp_password_user', $user->name)
             ->with('success', "Password for '{$user->name}' has been reset. Copy the temporary password below and share it securely.");
     }
 }
+

@@ -10,8 +10,8 @@ class SettingsController extends Controller
 {
     public function index()
     {
-        // BUG-06: Use Laravel's authorize() consistently instead of custom private method
-        $this->authorize('viewAny', \App\Models\User::class); // Only ADMIN can access settings
+
+        $this->authorize('viewAny', \App\Models\User::class);
 
         $settings = SystemSetting::all()->keyBy('key');
         return view('settings.index', compact('settings'));
@@ -19,7 +19,7 @@ class SettingsController extends Controller
 
     public function update(Request $request)
     {
-        $this->authorize('viewAny', \App\Models\User::class); // Only ADMIN
+        $this->authorize('viewAny', \App\Models\User::class);
 
         $validated = $request->validate([
             'system_name'              => 'nullable|string|max:100',
@@ -55,7 +55,6 @@ class SettingsController extends Controller
             }
         }
 
-        // Handle unchecked booleans (not present in request)
         foreach ($booleans as $bool) {
             if (!array_key_exists($bool, $validated)) {
                 SystemSetting::setValue($bool, '0');
@@ -67,3 +66,4 @@ class SettingsController extends Controller
         return back()->with('success', 'System settings have been updated successfully.');
     }
 }
+

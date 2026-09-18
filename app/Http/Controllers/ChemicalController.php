@@ -98,12 +98,10 @@ class ChemicalController extends Controller
         $chemical->updateStatus();
         $chemical->save();
 
-        // Generate QR code
         $qrContent       = $this->qrCodeService->buildContent($chemical->chemical_code);
         $chemical->qr_code = $this->qrCodeService->generate($chemical->chemical_code, $qrContent);
         $chemical->save();
 
-        // Record initial stock transaction if initial stock > 0 (BUG-04: delegate to StockService)
         if ($chemical->current_stock > 0) {
             $this->stockService->createInitialStockTransaction($chemical);
         }
@@ -161,7 +159,6 @@ class ChemicalController extends Controller
     {
         $this->authorize('delete', $chemical);
 
-        // Foreign key constraint protection: prevent unhandled QueryException
         $txCount = $chemical->stockTransactions()->count();
         $adjCount = $chemical->stockAdjustments()->count();
         $usageCount = $chemical->dailyUsages()->count();
@@ -185,3 +182,4 @@ class ChemicalController extends Controller
             ->with('success', "Chemical '{$name}' has been removed from the registry.");
     }
 }
+

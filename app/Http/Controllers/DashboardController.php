@@ -13,13 +13,11 @@ class DashboardController extends Controller
 
     public function index()
     {
-        // Stat cards
+
         $stats = $this->chemicalService->getDashboardStats();
 
-        // Stock movement last 7 days (for bar chart)
         $stockMovement = $this->getStockMovementLast7Days();
 
-        // Stock status distribution (for doughnut chart) - 1 single query
         $statusCounts = Chemical::selectRaw('status, count(*) as count')
             ->groupBy('status')
             ->pluck('count', 'status');
@@ -32,20 +30,17 @@ class DashboardController extends Controller
             'expiring_soon' => (int) ($statusCounts['EXPIRING_SOON'] ?? 0),
         ];
 
-        // Recent activity
         $recentActivity = StockTransaction::with(['chemical', 'performer'])
             ->orderBy('transaction_date', 'desc')
             ->take(10)
             ->get();
 
-        // Critical alerts
         $criticalAlerts = Chemical::whereIn('status', ['CRITICAL', 'EXPIRED', 'EXPIRING_SOON'])
             ->with('location')
             ->orderBy('status')
             ->take(8)
             ->get();
 
-        // Notification counts
         $notifications = $this->chemicalService->getNotificationCounts();
 
         return view('dashboard.index', compact(
@@ -90,3 +85,4 @@ class DashboardController extends Controller
         return compact('days', 'inbound', 'outbound');
     }
 }
+

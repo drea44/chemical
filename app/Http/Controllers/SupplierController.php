@@ -119,3 +119,4 @@ class SupplierController extends Controller
             ->with('success', "Supplier '{$name}' deleted successfully.");
     }
 }
+

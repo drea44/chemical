@@ -36,3 +36,4 @@ class StockInOutRequest extends FormRequest
         ];
     }
 }
+

@@ -67,3 +67,4 @@ class SupplierSeeder extends Seeder
         }
     }
 }
+

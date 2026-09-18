@@ -9,22 +9,17 @@
 
 @section('content')
 
-{{-- Header --}}
 <div class="mb-6">
     <h1 class="text-2xl font-bold text-gray-900 tracking-tight">QR Code Scanner</h1>
     <p class="text-sm text-gray-500 mt-1">Instantly locate substance datasheets, live volume profiles, and storage warnings.</p>
 </div>
 
-{{-- Two Column Layout --}}
 <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start" x-data="qrScannerEngine()" x-init="initScanner()">
 
-    {{-- LEFT: Scanner Viewport & Controls (matching Image 2) --}}
     <div class="lg:col-span-7 flex flex-col items-center">
 
-        {{-- Dark Viewport Card --}}
         <div class="qr-viewport w-full shadow-lg">
 
-            {{-- Video Stream Element --}}
             <video id="qr-video"
                    class="absolute inset-0 w-full h-full object-cover rounded-2xl"
                    style="border-radius: 16px; object-fit: cover; width: 100%; height: 100%;"
@@ -33,36 +28,30 @@
 
             <canvas id="qr-canvas" class="hidden"></canvas>
 
-            {{-- Scanner Frame Overlay (matching Image 2) --}}
             <div class="relative z-10 pointer-events-none flex items-center justify-center">
                 <div class="qr-target-box">
-                    {{-- 4 Corner Brackets --}}
+
                     <div class="qr-bracket qr-bracket-tl"></div>
                     <div class="qr-bracket qr-bracket-tr"></div>
                     <div class="qr-bracket qr-bracket-bl"></div>
                     <div class="qr-bracket qr-bracket-br"></div>
 
-                    {{-- 3 White Markers (QR Position Detection) --}}
                     <div class="qr-marker qr-marker-tl" :style="scanning ? 'opacity: 0.15;' : 'opacity: 1;'"></div>
                     <div class="qr-marker qr-marker-tr" :style="scanning ? 'opacity: 0.15;' : 'opacity: 1;'"></div>
                     <div class="qr-marker qr-marker-bl" :style="scanning ? 'opacity: 0.15;' : 'opacity: 1;'"></div>
 
-                    {{-- Red Laser Line --}}
                     <div class="qr-laser-line" :class="{ 'laser-active': scanning }"></div>
                 </div>
             </div>
 
-            {{-- Live Indicator badge inside viewport --}}
             <div x-show="scanning" class="absolute top-4 left-4 z-20 flex items-center gap-2 px-3 py-1 bg-black/70 backdrop-blur-xs rounded-full text-xs font-semibold text-emerald-400 border border-emerald-500/30">
                 <span class="w-2 h-2 rounded-full bg-emerald-400 animate-pulse"></span>
                 <span>Camera Live</span>
             </div>
         </div>
 
-        {{-- Controls Below Viewport --}}
         <div class="w-full flex flex-col items-center mt-6">
 
-            {{-- Action Button --}}
             <button type="button"
                     @click="toggleCamera()"
                     class="inline-flex items-center justify-center gap-2.5 text-white font-semibold text-sm rounded-xl shadow-md transition-all cursor-pointer hover:brightness-105 active:scale-[0.98]"
@@ -81,7 +70,6 @@
                 </template>
             </button>
 
-            {{-- Manual Entry Link --}}
             <p class="text-xs text-gray-500 text-center mt-3 font-medium">
                 Can't read code?
                 <button type="button"
@@ -91,7 +79,6 @@
                 </button>
             </p>
 
-            {{-- Camera Switcher (if multiple webcams / DroidCam detected) --}}
             <div x-show="videoDevices.length > 1" class="mt-4 flex items-center gap-2 text-xs text-gray-500 bg-white px-3.5 py-1.5 rounded-lg border border-gray-200 shadow-xs">
                 <i data-lucide="camera" class="w-3.5 h-3.5 text-gray-400"></i>
                 <span class="font-medium">Kamera:</span>
@@ -102,7 +89,6 @@
                 </select>
             </div>
 
-            {{-- Error Message Alert --}}
             <div x-show="error" x-cloak class="mt-4 w-full p-3.5 bg-rose-50 border border-rose-200 rounded-xl text-xs text-rose-700 flex items-start gap-2.5">
                 <i data-lucide="alert-circle" class="w-4 h-4 text-rose-500 flex-shrink-0 mt-0.5"></i>
                 <div class="flex-1">
@@ -113,10 +99,8 @@
         </div>
     </div>
 
-    {{-- RIGHT: Live Scan Result & Recent Scans (5 Columns) --}}
     <div class="lg:col-span-5 space-y-5">
 
-        {{-- Live Scan Result Panel --}}
         <div id="result-panel" class="bg-white border border-gray-200/80 rounded-xl p-5 shadow-xs hidden">
             <div class="flex items-center justify-between pb-3 border-b border-gray-100 mb-4">
                 <span class="text-xs font-bold text-gray-400 uppercase tracking-wider">Live Scan Result</span>
@@ -125,7 +109,6 @@
             <div id="result-content"></div>
         </div>
 
-        {{-- Idle Result State --}}
         <div id="result-idle" class="bg-white border border-gray-200/80 rounded-xl p-5 shadow-xs">
             <div class="flex items-center justify-between pb-3 border-b border-gray-100 mb-4">
                 <span class="text-xs font-bold text-gray-400 uppercase tracking-wider">Live Scan Result</span>
@@ -138,7 +121,6 @@
             </div>
         </div>
 
-        {{-- Recent Terminal Scans --}}
         <div class="bg-white border border-gray-200/80 rounded-xl p-5 shadow-xs">
             <h3 class="text-sm font-bold text-gray-900 mb-3">Recent Terminal Scans</h3>
             <div class="divide-y divide-gray-100">
@@ -168,7 +150,6 @@
             </div>
         </div>
 
-        {{-- Not Found Panel --}}
         <div id="not-found-panel" class="bg-rose-50 border border-rose-200 rounded-xl p-4 hidden">
             <div class="flex items-start gap-3">
                 <i data-lucide="x-circle" class="w-5 h-5 text-rose-500 flex-shrink-0 mt-0.5"></i>
@@ -182,7 +163,6 @@
     </div>
 </div>
 
-{{-- Manual Entry Modal --}}
 <div id="manual-modal" class="hidden fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-xs p-4">
     <div class="bg-white rounded-2xl shadow-2xl w-full max-w-sm p-6 border border-gray-100 animate-in fade-in zoom-in duration-150">
         <div class="flex items-center justify-between mb-4">
@@ -348,12 +328,10 @@ function qrScannerEngine() {
         selectedDeviceId: '',
 
         async initScanner() {
-            // Camera does NOT auto-start on load as requested
             try {
                 if (navigator.mediaDevices && navigator.mediaDevices.enumerateDevices) {
                     const devices = await navigator.mediaDevices.enumerateDevices();
                     this.videoDevices = devices.filter(d => d.kind === 'videoinput');
-                    // Preselect DroidCam if present
                     const droid = this.videoDevices.find(d => d.label.toLowerCase().includes('droidcam'));
                     if (droid) {
                         this.selectedDeviceId = droid.deviceId;
@@ -377,12 +355,10 @@ function qrScannerEngine() {
         async startCamera() {
             this.error = '';
 
-            // Stop any existing stream
             this.stopCamera();
 
             let stream = null;
 
-            // Strategy 1: Try with selected device if chosen
             if (this.selectedDeviceId) {
                 try {
                     stream = await navigator.mediaDevices.getUserMedia({
@@ -397,7 +373,6 @@ function qrScannerEngine() {
                 }
             }
 
-            // Strategy 2: Try ideal environment constraint (works on mobile, fallback on desktop)
             if (!stream) {
                 try {
                     stream = await navigator.mediaDevices.getUserMedia({
@@ -412,7 +387,6 @@ function qrScannerEngine() {
                 }
             }
 
-            // Strategy 3: Pure video: true constraint (compatible with all webcams & DroidCam virtual cameras)
             if (!stream) {
                 try {
                     stream = await navigator.mediaDevices.getUserMedia({ video: true });
@@ -439,7 +413,6 @@ function qrScannerEngine() {
 
             this.scanning = true;
 
-            // Refresh devices list after permission is granted (to get clear device labels)
             try {
                 const devices = await navigator.mediaDevices.enumerateDevices();
                 this.videoDevices = devices.filter(d => d.kind === 'videoinput');
@@ -586,3 +559,4 @@ async function lookupCode(code) {
 }
 </script>
 @endpush
+

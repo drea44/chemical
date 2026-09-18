@@ -43,7 +43,6 @@ class ChemicalStockTest extends TestCase
         $response->assertStatus(200);
         $response->assertSee('Chemical Categories');
 
-        // Create new category
         $createResponse = $this->actingAs($this->admin)->post('/categories', [
             'name'        => 'Cryogenic Liquids',
             'color'       => '#06b6d4',
@@ -60,7 +59,6 @@ class ChemicalStockTest extends TestCase
         $response->assertStatus(200);
         $response->assertSee('Chemical Suppliers');
 
-        // Create new supplier
         $createResponse = $this->actingAs($this->admin)->post('/suppliers', [
             'name'           => 'Apex Biochemical Ltd',
             'contact_person' => 'Sarah Connor',
@@ -78,7 +76,6 @@ class ChemicalStockTest extends TestCase
         $response->assertStatus(200);
         $response->assertSee('Storage Locations');
 
-        // Create new location
         $createResponse = $this->actingAs($this->admin)->post('/locations', [
             'name'              => 'Cold Room B - Refrigerator 2',
             'building'          => 'Lab Building',
@@ -118,7 +115,6 @@ class ChemicalStockTest extends TestCase
         $this->assertNotNull($chemical);
         $response->assertRedirect(route('chemicals.show', $chemical));
 
-        // Verify initial transaction in ledger
         $this->assertDatabaseHas('stock_transactions', [
             'chemical_id'      => $chemical->id,
             'transaction_type' => 'STOCK_IN',
@@ -132,7 +128,6 @@ class ChemicalStockTest extends TestCase
         $chemical = Chemical::where('status', 'SAFE')->first();
         $initialStock = (float) $chemical->current_stock;
 
-        // Stock In via Stock In Out
         $inResponse = $this->actingAs($this->stockManager)->post(route('stock.stock-in-out.process'), [
             'chemical_id'      => $chemical->id,
             'transaction_type' => 'STOCK_IN',
@@ -152,7 +147,6 @@ class ChemicalStockTest extends TestCase
             'stock_after'      => $initialStock + 10,
         ]);
 
-        // Stock Out via Stock In Out
         $outResponse = $this->actingAs($this->stockManager)->post(route('stock.stock-in-out.process'), [
             'chemical_id'      => $chemical->id,
             'transaction_type' => 'STOCK_OUT',
@@ -191,7 +185,7 @@ class ChemicalStockTest extends TestCase
 
     public function test_legacy_stock_routes_redirect_to_stock_in_out(): void
     {
-        // Old routes redirect to stock.stock-in-out
+
         $this->actingAs($this->admin)->get(route('stock.in'))->assertRedirect(route('stock.stock-in-out'));
         $this->actingAs($this->admin)->get(route('stock.out'))->assertRedirect(route('stock.stock-in-out'));
         $this->actingAs($this->admin)->get(route('stock.adjustment'))->assertRedirect(route('stock.stock-in-out'));
@@ -211,7 +205,6 @@ class ChemicalStockTest extends TestCase
     {
         $chemical = Chemical::first();
 
-        // Viewer should get 403 Forbidden on Stock In Out
         $response = $this->actingAs($this->viewer)->post(route('stock.stock-in-out.process'), [
             'chemical_id'      => $chemical->id,
             'transaction_type' => 'STOCK_IN',
@@ -227,31 +220,26 @@ class ChemicalStockTest extends TestCase
     {
         $supplier = Supplier::first();
 
-        // Viewer cannot view create form
         $this->actingAs($this->viewer)->get(route('suppliers.create'))->assertStatus(403);
 
-        // Viewer cannot store supplier
         $this->actingAs($this->viewer)->post(route('suppliers.store'), [
             'name'   => 'Unauth Supplier',
             'status' => 'active',
         ])->assertStatus(403);
 
-        // Viewer cannot edit supplier
         $this->actingAs($this->viewer)->get(route('suppliers.edit', $supplier))->assertStatus(403);
 
-        // Viewer cannot update supplier
         $this->actingAs($this->viewer)->put(route('suppliers.update', $supplier), [
             'name'   => 'Hacked Supplier',
             'status' => 'active',
         ])->assertStatus(403);
 
-        // Viewer cannot delete supplier
         $this->actingAs($this->viewer)->delete(route('suppliers.destroy', $supplier))->assertStatus(403);
     }
 
     public function test_cannot_delete_chemical_with_transactions(): void
     {
-        // Chemical with transactions
+
         $chemical = Chemical::has('stockTransactions')->first();
         $this->assertNotNull($chemical);
 
@@ -282,17 +270,15 @@ class ChemicalStockTest extends TestCase
 
     public function test_reports_csv_export_validates_and_streams_csv(): void
     {
-        // Valid inventory export
+
         $response = $this->actingAs($this->admin)->get(route('reports.export-csv', ['type' => 'inventory']));
         $response->assertStatus(200);
         $response->assertHeader('content-type', 'text/csv; charset=UTF-8');
 
-        // Valid movement export
         $response = $this->actingAs($this->admin)->get(route('reports.export-csv', ['type' => 'movement']));
         $response->assertStatus(200);
         $response->assertHeader('content-type', 'text/csv; charset=UTF-8');
 
-        // Invalid export type fails validation
         $response = $this->actingAs($this->admin)->get(route('reports.export-csv', ['type' => 'malicious_type']));
         $response->assertSessionHasErrors('type');
     }
@@ -308,14 +294,12 @@ class ChemicalStockTest extends TestCase
 
     public function test_user_management_restricted_to_admin(): void
     {
-        // Stock manager cannot view users
+
         $this->actingAs($this->stockManager)->get(route('users.index'))->assertStatus(403);
         $this->actingAs($this->stockManager)->get(route('users.create'))->assertStatus(403);
 
-        // Viewer cannot view users
         $this->actingAs($this->viewer)->get(route('users.index'))->assertStatus(403);
 
-        // Admin can view users
         $this->actingAs($this->admin)->get(route('users.index'))->assertStatus(200);
     }
 
@@ -454,7 +438,6 @@ class ChemicalStockTest extends TestCase
             'penerimaan'    => 50,
         ]);
 
-        // Redirect includes ?month=2026-04&highlight=<id>, so check URL contains the month param
         $response->assertRedirectContains('month=2026-04');
         $this->assertDatabaseHas('chemicals', [
             'chemical_name' => 'Quick Add Reagent',
@@ -462,3 +445,4 @@ class ChemicalStockTest extends TestCase
         ]);
     }
 }
+

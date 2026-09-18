@@ -9,17 +9,14 @@
 
 @section('content')
 
-{{-- Header --}}
 <div class="mb-5">
     <h1 class="text-xl font-bold text-gray-900">Audit Trail Ledger</h1>
     <p class="text-sm text-gray-500 mt-0.5">Cryptographically logged chemical transactions, permission state changes, and OSHA/EPA compliance actions.</p>
 </div>
 
-{{-- Filters + Export --}}
 <div class="flex flex-wrap items-center justify-between gap-3 mb-4">
     <form method="GET" class="flex flex-wrap items-center gap-2">
 
-        {{-- Authorized User --}}
         <div class="relative">
             <select name="user" onchange="this.form.submit()"
                     class="appearance-none rounded border border-gray-300 pl-3 pr-7 py-1.5 text-xs text-gray-600 bg-white cursor-pointer focus:outline-none">
@@ -31,7 +28,6 @@
             <i data-lucide="chevron-down" class="absolute right-2 top-1/2 -translate-y-1/2 w-3 h-3 text-gray-400 pointer-events-none"></i>
         </div>
 
-        {{-- OS System Module --}}
         <div class="relative">
             <select name="module" onchange="this.form.submit()"
                     class="appearance-none rounded border border-gray-300 pl-3 pr-7 py-1.5 text-xs text-gray-600 bg-white cursor-pointer focus:outline-none">
@@ -43,7 +39,6 @@
             <i data-lucide="chevron-down" class="absolute right-2 top-1/2 -translate-y-1/2 w-3 h-3 text-gray-400 pointer-events-none"></i>
         </div>
 
-        {{-- Action Type --}}
         <div class="relative">
             <select name="action" onchange="this.form.submit()"
                     class="appearance-none rounded border border-gray-300 pl-3 pr-7 py-1.5 text-xs text-gray-600 bg-white cursor-pointer focus:outline-none">
@@ -55,7 +50,6 @@
             <i data-lucide="chevron-down" class="absolute right-2 top-1/2 -translate-y-1/2 w-3 h-3 text-gray-400 pointer-events-none"></i>
         </div>
 
-        {{-- Date Range --}}
         <div class="relative">
             <select name="date_range" onchange="this.form.submit()"
                     class="appearance-none rounded border border-gray-300 pl-3 pr-7 py-1.5 text-xs text-gray-600 bg-white cursor-pointer focus:outline-none">
@@ -76,7 +70,6 @@
     </a>
 </div>
 
-{{-- Table --}}
 <div class="bg-white border border-gray-200 rounded-lg overflow-hidden">
     <div class="overflow-x-auto">
         <table class="w-full text-sm">
@@ -111,21 +104,19 @@
                     ];
                     $am = $actionMap[$log->action] ?? ['label' => strtoupper($log->action), 'class' => 'text-gray-600'];
 
-                    // Avatar initials + color
                     $initials = strtoupper(substr($log->user?->name ?? 'S', 0, 1) . substr(explode(' ', $log->user?->name ?? 'SYS')[1] ?? 'Y', 0, 1));
                     $avatarColors = ['JD' => 'bg-blue-500', 'SC' => 'bg-green-500', 'AT' => 'bg-purple-500'];
                     $avatarClass  = $avatarColors[$initials] ?? 'bg-gray-400';
 
-                    // Old & new values
                     $oldVal = $log->old_values ? (is_array($log->old_values) ? collect($log->old_values)->first() : $log->old_values) : null;
                     $newVal = $log->new_values ? (is_array($log->new_values) ? collect($log->new_values)->first() : $log->new_values) : null;
                 @endphp
                 <tr class="hover:bg-gray-50 transition-colors">
-                    {{-- Date/Time --}}
+
                     <td class="px-5 py-4 whitespace-nowrap">
                         <p class="text-sm text-gray-700">{{ $log->created_at->format('d-M-Y') }}, {{ $log->created_at->format('H:i') }}</p>
                     </td>
-                    {{-- Authorized User --}}
+
                     <td class="px-3 py-4">
                         <div class="flex items-center gap-2">
                             <div class="w-7 h-7 rounded-full flex items-center justify-center text-white text-xs font-bold flex-shrink-0 {{ $avatarClass }}">
@@ -140,15 +131,15 @@
                             </div>
                         </div>
                     </td>
-                    {{-- Activity Description --}}
+
                     <td class="px-3 py-4 max-w-[160px]">
                         <p class="text-xs text-gray-600 leading-relaxed">
                             {{ $log->description ?? ucfirst(str_replace('_', ' ', $log->action)) . ' on ' . $log->module }}
                         </p>
                     </td>
-                    {{-- System Module --}}
+
                     <td class="px-3 py-4 text-sm text-gray-600">{{ $log->module }}</td>
-                    {{-- Affected Item --}}
+
                     <td class="px-3 py-4">
                         @if($log->record_id)
                         <p class="text-sm font-semibold text-gray-900">
@@ -158,15 +149,15 @@
                         <span class="text-gray-400">—</span>
                         @endif
                     </td>
-                    {{-- Prev State --}}
+
                     <td class="px-3 py-4 text-xs text-gray-400 font-mono">
                         {{ $oldVal ? (strlen((string)$oldVal) > 12 ? substr($oldVal, 0, 12).'...' : $oldVal) : '—' }}
                     </td>
-                    {{-- New State --}}
+
                     <td class="px-3 py-4 text-sm font-semibold text-gray-700">
                         {{ $newVal ? (strlen((string)$newVal) > 14 ? substr($newVal, 0, 14).'...' : $newVal) : '—' }}
                     </td>
-                    {{-- Action badge --}}
+
                     <td class="px-3 py-4">
                         <span class="text-xs font-bold {{ $am['class'] }}">{{ $am['label'] }}</span>
                     </td>
@@ -183,7 +174,6 @@
         </table>
     </div>
 
-    {{-- Pagination --}}
     @if($logs->hasPages())
     <div class="px-5 py-3 border-t border-gray-100 flex items-center justify-between">
         <p class="text-xs text-gray-500">
@@ -223,3 +213,4 @@
 </div>
 
 @endsection
+

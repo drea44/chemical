@@ -6,7 +6,7 @@
 @endphp
 
 <header class="sticky top-0 z-30 bg-white border-b border-gray-200 px-4 sm:px-6 py-3 flex items-center justify-between min-w-0">
-    <!-- Left: Toggle + Breadcrumb -->
+
     <div class="flex items-center gap-3 min-w-0">
         <button @click="sidebarOpen = !sidebarOpen"
                 class="p-1.5 rounded hover:bg-gray-100 text-gray-500 transition-colors flex-shrink-0"
@@ -14,7 +14,6 @@
             <i data-lucide="menu" class="w-5 h-5"></i>
         </button>
 
-        <!-- Breadcrumb on desktop / tablet -->
         <nav class="hidden md:flex items-center gap-1 text-sm truncate">
             <a href="{{ route('dashboard') }}" class="text-gray-400 hover:text-gray-600 transition-colors">
                 <i data-lucide="home" class="w-3.5 h-3.5"></i>
@@ -33,14 +32,11 @@
             @endif
         </nav>
 
-        <!-- Title fallback on mobile -->
         <span class="md:hidden text-sm font-semibold text-gray-800 truncate max-w-[150px] sm:max-w-[260px]">{{ $title }}</span>
     </div>
 
-    <!-- Right: Notifications + User -->
     <div class="flex items-center gap-2 sm:gap-3 flex-shrink-0">
 
-        <!-- Notification Bell -->
         <div class="relative" x-data="{ open: false }">
             <button @click="open = !open"
                     class="relative p-2 rounded hover:bg-gray-100 text-gray-500 transition-colors"
@@ -54,7 +50,6 @@
                 @endif
             </button>
 
-            <!-- Dropdown -->
             <div x-show="open" @click.away="open = false"
                  class="absolute right-0 mt-2 w-72 sm:w-80 bg-white rounded-lg shadow-lg border border-gray-200 z-50"
                  x-transition:enter="transition ease-out duration-100"
@@ -113,7 +108,6 @@
             </div>
         </div>
 
-        <!-- User Dropdown -->
         <div class="relative" x-data="{ open: false }">
             <button @click="open = !open"
                     class="flex items-center gap-2 px-3 py-1.5 rounded hover:bg-gray-100 text-gray-700 transition-colors text-sm">
@@ -150,3 +144,4 @@
         </div>
     </div>
 </header>
+

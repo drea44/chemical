@@ -54,7 +54,6 @@
         background-color: #fef9c3;
     }
 
-    /* CSS counter — otomatis skip baris yang display:none (deleted) */
     .report-table tbody {
         counter-reset: rownum {{ ($chemicals->firstItem() ?? 1) - 1 }};
     }
@@ -89,7 +88,6 @@
         color: #111827;
     }
 
-    /* Edit Modal */
     .modal-overlay {
         position: fixed; inset: 0; background: rgba(0,0,0,0.5);
         display: flex; align-items: center; justify-content: center;
@@ -110,7 +108,6 @@
     .form-input  { width:100%; border:1.5px solid #e5e7eb; border-radius:0.5rem; padding:0.5rem 0.75rem; font-size:0.875rem; outline:none; transition:border-color .15s, box-shadow .15s; background:#fafafa; color:#111827; }
     .form-input:focus { border-color:#f59e0b; box-shadow:0 0 0 3px rgba(245,158,11,0.15); background:#fff; }
 
-    /* Month grid table inside edit modal */
     .month-grid {
         width: 100%;
         border-collapse: collapse;
@@ -198,7 +195,6 @@
 @section('content')
 <div x-data="masterReportEdit()" class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 space-y-5">
 
-    {{-- Top Tab Navigation --}}
     <div class="flex flex-wrap items-center justify-between gap-3 border-b border-gray-200 pb-4">
         <div class="flex items-center gap-2">
             <a href="{{ route('transactions.master-report') }}" class="tab-pill active">
@@ -216,7 +212,7 @@
         </div>
 
         <div class="flex items-center gap-2 flex-wrap">
-            {{-- Simple Search Form --}}
+
             <form action="{{ route('transactions.master-report') }}" method="GET" class="flex items-center gap-2">
                 <div class="relative">
                     <input type="text"
@@ -251,7 +247,6 @@
         </div>
     </div>
 
-    {{-- Flash success --}}
     @if(session('success'))
     <div class="flex items-center gap-2 px-4 py-2.5 bg-green-50 border border-green-200 rounded-lg text-sm text-green-800 font-medium"
          x-data="{show:true}" x-show="show" x-transition>
@@ -261,15 +256,12 @@
     </div>
     @endif
 
-    {{-- Main Card --}}
     <div class="bg-white rounded-lg shadow-sm border border-gray-200 overflow-hidden">
 
-        {{-- Header Banner matching Reference Image 1 --}}
         <div class="report-banner">
             REPORT MONITORING CHEMICAL
         </div>
 
-        {{-- Responsive Table Container --}}
         <div class="overflow-x-auto">
             <table class="report-table">
                 <thead>
@@ -357,7 +349,6 @@
             </table>
         </div>
 
-        {{-- Footer & Pagination --}}
         <div class="p-4 border-t border-gray-200 bg-gray-50 flex flex-col sm:flex-row items-center justify-between gap-3">
             <p class="text-xs text-gray-500">
                 Menampilkan <span class="font-medium text-gray-700">{{ $chemicals->firstItem() ?? 0 }}</span> - <span class="font-medium text-gray-700">{{ $chemicals->lastItem() ?? 0 }}</span> dari <span class="font-medium text-gray-700">{{ $chemicals->total() }}</span> chemical
@@ -369,7 +360,6 @@
 
     </div>
 
-    {{-- ═══════════════════════ EDIT MODAL ═══════════════════════ --}}
     <div class="modal-overlay" x-show="showEditModal" x-cloak @click.self="showEditModal=false"
          @keydown.enter.window="if(showEditModal && !saving) saveEdit()"
          x-transition:enter="transition ease-out duration-200"
@@ -388,14 +378,13 @@
             </div>
 
             <div class="space-y-3">
-                {{-- Chemical Name --}}
+
                 <div>
                     <label class="form-label">Nama Chemical</label>
                     <input x-model="edit.name" class="form-input" placeholder="Nama chemical..."
                            @keydown.enter.prevent="if(!saving) saveEdit()">
                 </div>
 
-                {{-- Amount + Unit per Bulan --}}
                 <div class="border-t border-gray-100 pt-4 mt-1">
                     <div class="flex items-center gap-2 mb-3">
                         <div class="w-1 h-4 rounded-full bg-amber-400"></div>
@@ -447,7 +436,6 @@
         </div>
     </div>
 
-    {{-- ═══════════════════════ DELETE CONFIRM ═══════════════════════ --}}
     <div class="modal-overlay" x-show="showDeleteModal" x-cloak @click.self="showDeleteModal=false"
          @keydown.enter.window="if(showDeleteModal && !deleting) doDelete()"
          x-transition:enter="transition ease-out duration-150" x-transition:enter-start="opacity-0"
@@ -472,7 +460,6 @@
         </div>
     </div>
 
-    {{-- ═══════════════════════ MODAL TAMBAH CHEMICAL ═══════════════════════ --}}
     <div class="modal-overlay" x-show="showAddModal" x-cloak @click.self="showAddModal=false"
          x-transition:enter="transition ease-out duration-150" x-transition:enter-start="opacity-0"
          x-transition:enter-end="opacity-100">
@@ -492,7 +479,6 @@
                 </button>
             </div>
 
-            {{-- Error message --}}
             <div x-show="addError" x-cloak class="mb-3 flex items-center gap-2 px-3 py-2 bg-red-50 border border-red-200 rounded-lg text-sm text-red-700">
                 <i data-lucide="alert-circle" class="w-4 h-4 flex-shrink-0"></i>
                 <span x-text="addError"></span>
@@ -576,7 +562,6 @@ function masterReportEdit() {
         deleteTarget: { id: null, name: '' },
 
         openEdit(row) {
-            // Format amounts to string with comma decimal if needed, no dots. Keep 0 as '0'.
             const monthsCopy = JSON.parse(JSON.stringify(row.months || {}));
             for (const [k, v] of Object.entries(monthsCopy)) {
                 if (v && v.amount !== null && v.amount !== undefined && v.amount !== '') {
@@ -605,7 +590,6 @@ function masterReportEdit() {
             const chemId = this.edit.id;
 
             try {
-                // 1. Update chemical_name hanya jika berubah
                 if (this.edit.name && this.edit.name.trim() !== '' && this.edit.name !== this.currentOriginalName) {
                     await fetch('{{ route('transactions.update-chemical') }}', {
                         method: 'POST',
@@ -614,13 +598,10 @@ function masterReportEdit() {
                     });
                 }
 
-                // 2. Update saldo_awal + unit per month
                 for (const [mKey, mData] of Object.entries(this.edit.months)) {
                     const amt  = mData?.amount;
                     const unit = mData?.unit ?? '';
 
-                    // Jika user tidak menginput angka (kosong), kirim null agar di database dan tampilan menjadi TIDAK ADA / KOSONG.
-                    // Jika user menginput angka (termasuk 0), kirim nilainya agar tampil 0.
                     const cleanAmt = (amt !== null && amt !== undefined && String(amt).trim() !== '')
                         ? String(amt).trim().replace(',', '.')
                         : null;
@@ -631,7 +612,6 @@ function masterReportEdit() {
                         body: JSON.stringify({ chemical_id: chemId, period_month: mKey, field: 'saldo_awal', value: cleanAmt })
                     });
 
-                    // Simpan unit per bulan
                     await fetch('{{ route('transactions.update-balance') }}', {
                         method: 'POST',
                         headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrf },
@@ -639,18 +619,15 @@ function masterReportEdit() {
                     });
                 }
 
-                // Update DOM: nama
                 const nameEl = document.getElementById('mr-name-' + chemId);
                 if (nameEl) nameEl.textContent = this.edit.name;
 
-                // Update DOM: amount & unit per month
                 const monthKeys = @json(array_keys($reportMonths));
                 monthKeys.forEach(mKey => {
                     const mData = this.edit.months[mKey];
                     const amt   = mData?.amount;
                     const unit  = mData?.unit ?? '';
 
-                    // Format angka tanpa titik dan gunakan koma untuk desimal, angka 0 tetap ditampilkan sebagai '0'
                     let display = '';
                     if (amt !== null && amt !== undefined && String(amt).trim() !== '') {
                         const clean = String(amt).replace(',', '.');
@@ -671,11 +648,9 @@ function masterReportEdit() {
 
                 this.showEditModal = false;
 
-                // Simpan row target & posisi scroll ke sessionStorage agar setelah reload posisinya TETAP di tempat
                 sessionStorage.setItem('mr_keep_row', chemId);
                 sessionStorage.setItem('mr_scroll_y', window.scrollY);
 
-                // Reload halaman agar sinkron total & relasi
                 window.location.reload();
             } catch(e) {
                 alert('Gagal menyimpan. Silakan coba lagi.');
@@ -721,7 +696,6 @@ function masterReportEdit() {
             const csrf = document.querySelector('meta[name="csrf-token"]')?.content;
             const formData = new FormData(form);
 
-            // Normalize comma decimals to dot in formData
             for (const [key, val] of Array.from(formData.entries())) {
                 if (typeof val === 'string' && (key.startsWith('months[') || key === 'minimum_stock' || key === 'saldo_awal')) {
                     formData.set(key, val.replace(',', '.').trim());
@@ -738,7 +712,6 @@ function masterReportEdit() {
                 const data = await resp.json().catch(() => ({}));
 
                 if (resp.ok && data.success) {
-                    // Redirect ke master-report dengan highlight chemical baru
                     const chemId = data.chemical?.id ?? '';
                     window.location.href = '{{ route('transactions.master-report') }}'
                         + (chemId ? '?highlight=' + chemId : '');
@@ -755,7 +728,6 @@ function masterReportEdit() {
     }
 }
 
-// Restore scroll & highlight row after edit or quick add
 document.addEventListener('DOMContentLoaded', () => {
     const urlParams = new URLSearchParams(window.location.search);
     const highlightId = urlParams.get('highlight');
@@ -777,7 +749,6 @@ document.addEventListener('DOMContentLoaded', () => {
             window.scrollTo(0, parseInt(scrollY));
         }
 
-        // Clean ?highlight from URL without refreshing
         if (highlightId) {
             const newUrl = new URL(window.location);
             newUrl.searchParams.delete('highlight');
@@ -789,3 +760,4 @@ document.addEventListener('DOMContentLoaded', () => {
 @endpush
 
 @endsection
+

@@ -27,3 +27,4 @@ class ChemicalLocation extends Model
         return implode(' / ', $parts) ?: $this->name;
     }
 }
+

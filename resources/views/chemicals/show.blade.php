@@ -12,7 +12,6 @@
 
 @section('content')
 
-<!-- Header -->
 <div class="flex flex-col sm:flex-row sm:items-start sm:justify-between gap-4 mb-6">
     <div>
         <div class="flex items-center gap-3 mb-1">
@@ -42,10 +41,8 @@
 
 <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
 
-    <!-- Left Column: Details -->
     <div class="lg:col-span-2 space-y-5">
 
-        <!-- Chemical Info -->
         <div class="bg-white border border-gray-200 rounded-lg">
             <div class="px-5 py-4 border-b border-gray-100 bg-gray-50">
                 <h2 class="text-sm font-semibold text-gray-700">Chemical Information</h2>
@@ -76,7 +73,6 @@
             </div>
         </div>
 
-        <!-- Stock Visualization -->
         <div class="bg-white border border-gray-200 rounded-lg p-5">
             <h2 class="text-sm font-semibold text-gray-700 mb-4">Stock Level</h2>
             <div class="flex items-end gap-8 mb-4">
@@ -114,7 +110,6 @@
             @endif
         </div>
 
-        <!-- Stock Movement Ledger -->
         <div class="bg-white border border-gray-200 rounded-lg">
             <div class="px-5 py-4 border-b border-gray-100">
                 <h2 class="text-sm font-semibold text-gray-700">Stock Movement Ledger</h2>
@@ -152,10 +147,8 @@
         </div>
     </div>
 
-    <!-- Right Column -->
     <div class="space-y-5">
 
-        <!-- QR Code Card -->
         <div class="bg-white border border-gray-200 rounded-lg p-5">
             <h2 class="text-sm font-semibold text-gray-700 mb-4">QR Code</h2>
             <div class="flex justify-center p-4 bg-gray-50 rounded-lg border border-gray-100">
@@ -181,7 +174,6 @@
             </div>
         </div>
 
-        <!-- Dates & Expiry -->
         <div class="bg-white border border-gray-200 rounded-lg p-5">
             <h2 class="text-sm font-semibold text-gray-700 mb-4">Dates &amp; Validity</h2>
             <div class="space-y-3">
@@ -209,7 +201,6 @@
             </div>
         </div>
 
-        <!-- DOKUMEN COA & MSDS -->
         <div class="bg-white border border-gray-200 rounded-lg overflow-hidden" id="documents-section">
             <div class="px-5 py-4 border-b border-gray-100 bg-gray-50 flex items-center justify-between">
                 <div class="flex items-center gap-2">
@@ -222,7 +213,7 @@
             </div>
 
             @can('update', $chemical)
-            <!-- Upload Form -->
+
             <div class="px-5 py-4 border-b border-gray-100 bg-blue-50">
                 <form method="POST"
                       action="{{ route('chemicals.documents.store', $chemical) }}"
@@ -234,7 +225,7 @@
                         Upload Dokumen Baru
                     </p>
                     <div class="space-y-3">
-                        <!-- Tipe Dokumen -->
+
                         <div>
                             <label class="block text-xs font-medium text-gray-600 mb-1.5">
                                 Tipe Dokumen <span class="text-red-500">*</span>
@@ -258,7 +249,6 @@
                             @enderror
                         </div>
 
-                        <!-- File Input -->
                         <div>
                             <label class="block text-xs font-medium text-gray-600 mb-1">
                                 File <span class="text-red-500">*</span>
@@ -276,7 +266,6 @@
                             @enderror
                         </div>
 
-                        <!-- Catatan Opsional -->
                         <div>
                             <label class="block text-xs font-medium text-gray-600 mb-1">
                                 Catatan <span class="text-gray-400 font-normal">(opsional)</span>
@@ -302,12 +291,10 @@
             </div>
             @endcan
 
-            <!-- Daftar Dokumen -->
             <div class="divide-y divide-gray-50">
                 @forelse($chemical->documents as $doc)
                 <div class="px-5 py-3.5 flex items-start gap-3 hover:bg-gray-50 transition-colors">
 
-                    <!-- Icon -->
                     <div class="flex-shrink-0 mt-0.5">
                         @if($doc->document_type === 'COA')
                             <div class="w-8 h-8 rounded-lg bg-blue-100 flex items-center justify-center">
@@ -320,7 +307,6 @@
                         @endif
                     </div>
 
-                    <!-- Info -->
                     <div class="flex-1 min-w-0">
                         <div class="mb-0.5">
                             @if($doc->document_type === 'COA')
@@ -342,7 +328,6 @@
                         </p>
                     </div>
 
-                    <!-- Actions -->
                     <div class="flex items-center gap-1 flex-shrink-0 mt-0.5">
                         <a href="{{ route('chemicals.documents.download', [$chemical, $doc]) }}"
                            title="Download {{ $doc->original_name }}"
@@ -374,9 +359,7 @@
                 @endforelse
             </div>
         </div>
-        <!-- /DOKUMEN COA & MSDS -->
 
-        <!-- Meta -->
         <div class="bg-white border border-gray-200 rounded-lg p-5">
             <h2 class="text-sm font-semibold text-gray-700 mb-3">Record Info</h2>
             <div class="space-y-2 text-xs">
@@ -405,3 +388,4 @@
 </div>
 
 @endsection
+

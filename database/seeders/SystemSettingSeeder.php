@@ -30,3 +30,4 @@ class SystemSettingSeeder extends Seeder
         }
     }
 }
+

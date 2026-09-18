@@ -9,7 +9,6 @@
 
 @section('content')
 
-<!-- Header -->
 <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4 mb-6">
     <div>
         <h1 class="text-xl font-bold text-gray-900">Chemical Registry</h1>
@@ -23,37 +22,36 @@
     </div>
 </div>
 
-<!-- Filters -->
 <div class="bg-white border border-gray-200 rounded-lg p-4 mb-5">
     <form method="GET" action="{{ route('chemicals.index') }}" class="flex flex-wrap gap-3">
-        <!-- Search -->
+
         <div class="relative flex-1 min-w-48">
             <i data-lucide="search" class="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400"></i>
             <input type="text" name="search" value="{{ request('search') }}" placeholder="Search by name, code, CAS, supplier..."
                    class="pl-9 w-full rounded border border-gray-300 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500">
         </div>
-        <!-- Category -->
+
         <select name="category" class="rounded border border-gray-300 px-3 py-2 text-sm text-gray-700 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 bg-white">
             <option value="">All Categories</option>
             @foreach($categories as $cat)
             <option value="{{ $cat->id }}" @selected(request('category') == $cat->id)>{{ $cat->name }}</option>
             @endforeach
         </select>
-        <!-- Location -->
+
         <select name="location" class="rounded border border-gray-300 px-3 py-2 text-sm text-gray-700 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 bg-white">
             <option value="">All Locations</option>
             @foreach($locations as $loc)
             <option value="{{ $loc->id }}" @selected(request('location') == $loc->id)>{{ $loc->name }}</option>
             @endforeach
         </select>
-        <!-- Status -->
+
         <select name="status" class="rounded border border-gray-300 px-3 py-2 text-sm text-gray-700 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 bg-white">
             <option value="">All Statuses</option>
             @foreach(['SAFE','LOW','CRITICAL','EXPIRED','EXPIRING_SOON'] as $s)
             <option value="{{ $s }}" @selected(request('status') == $s)>{{ ucfirst(strtolower(str_replace('_', ' ', $s))) }}</option>
             @endforeach
         </select>
-        <!-- Per Page -->
+
         <select name="per_page" class="rounded border border-gray-300 px-3 py-2 text-sm text-gray-700 focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500 bg-white">
             <option value="20" @selected(request('per_page') == 20)>20 per page</option>
             <option value="50" @selected(request('per_page') == 50)>50 per page</option>
@@ -67,7 +65,6 @@
     </form>
 </div>
 
-<!-- Table -->
 <div class="bg-white border border-gray-200 rounded-lg overflow-hidden">
     <div class="overflow-x-auto">
         <table class="w-full text-sm">
@@ -199,3 +196,4 @@
 </div>
 
 @endsection
+

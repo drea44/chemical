@@ -32,3 +32,4 @@ class SupplierPolicy
         return $user->role === 'ADMIN';
     }
 }
+

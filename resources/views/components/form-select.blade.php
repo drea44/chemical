@@ -21,3 +21,4 @@
         <p class="text-xs text-red-600 flex items-center gap-1"><i data-lucide="alert-circle" class="w-3 h-3"></i>{{ $message }}</p>
     @enderror
 </div>
+

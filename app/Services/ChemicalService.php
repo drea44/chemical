@@ -9,16 +9,10 @@ use Illuminate\Support\Str;
 
 class ChemicalService
 {
-    /**
-     * Generate a unique chemical code.
-     *
-     * Uses a sequential number based on max existing code, with a uniqueness loop
-     * to handle gaps from deleted records. Falls back to timestamp+random suffix
-     * if no unique sequential code can be found after reasonable attempts.
-     */
+
     public function generateChemicalCode(): string
     {
-        // Derive next sequence from the highest CHM-XXXX code in the database
+
         $lastCode = Chemical::where('chemical_code', 'like', 'CHM-%')
             ->orderByRaw("CAST(REPLACE(chemical_code, 'CHM-', '') AS UNSIGNED) DESC")
             ->value('chemical_code');
@@ -28,7 +22,6 @@ class ChemicalService
             $next = (int) $m[1] + 1;
         }
 
-        // Loop to ensure uniqueness (handles gaps from deleted records)
         $attempts = 0;
         while ($attempts < 10) {
             $candidate = 'CHM-' . str_pad($next, 4, '0', STR_PAD_LEFT);
@@ -39,13 +32,9 @@ class ChemicalService
             $attempts++;
         }
 
-        // Fallback: timestamp + random suffix (collision-safe by construction)
         return 'CHM-' . now()->format('YmdHis') . '-' . strtoupper(\Illuminate\Support\Str::random(4));
     }
 
-    /**
-     * Update status for all chemicals based on current settings (BUG-11 fix: chunking).
-     */
     public function refreshAllStatuses(): void
     {
         $expiryDays = (int) SystemSetting::getValue('expiry_warning_days', 30);
@@ -57,9 +46,6 @@ class ChemicalService
         });
     }
 
-    /**
-     * Get notification counts for topbar badge (BUG-23 fix: single aggregated query).
-     */
     public function getNotificationCounts(): array
     {
         $counts = Chemical::selectRaw('status, count(*) as total')
@@ -81,9 +67,6 @@ class ChemicalService
         ];
     }
 
-    /**
-     * Get dashboard statistics (optimized to single group-by query + sum).
-     */
     public function getDashboardStats(): array
     {
         $statusCounts = Chemical::selectRaw('status, count(*) as total')
@@ -101,3 +84,4 @@ class ChemicalService
         ];
     }
 }
+

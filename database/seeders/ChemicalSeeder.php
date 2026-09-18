@@ -15,7 +15,6 @@ class ChemicalSeeder extends Seeder
     {
         $admin = User::where('email', 'admin@example.com')->first() ?? User::first();
 
-        // Categories
         $solvents = ChemicalCategory::where('name', 'Solvents')->first() ?? ChemicalCategory::first();
         $acids    = ChemicalCategory::where('name', 'Acids')->first() ?? ChemicalCategory::first();
         $bases    = ChemicalCategory::where('name', 'Bases')->first() ?? ChemicalCategory::first();
@@ -34,13 +33,11 @@ class ChemicalSeeder extends Seeder
             'Consumables & Supplies' => $supplies->id,
         ];
 
-        // Locations (Lemari)
         $locMap = [];
         foreach (ChemicalLocation::all() as $loc) {
             $locMap[$loc->name] = $loc->id;
         }
 
-        // 250 items with metadata imported from Google Spreadsheet
         $rawChemicals = [
             [
                 'id' => 1,

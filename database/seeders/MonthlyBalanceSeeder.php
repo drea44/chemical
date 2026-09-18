@@ -11,20 +11,10 @@ use Illuminate\Database\Seeder;
 
 class MonthlyBalanceSeeder extends Seeder
 {
-    /**
-     * Seed monthly balance data from Google Sheets:
-     * - Database Maret  (2026-03)
-     * - Database Aprill (2026-04)
-     * - Database Mei    (2026-05)
-     * - Juni            (2026-06)
-     * - Juli            (2026-07)
-     */
+
     public function run(): void
     {
         $admin = User::where('role', 'ADMIN')->first() ?? User::first();
-
-        // DATA STRUCTURE per entry: [name, unit, saldo_awal, penerimaan, usages]
-        // usages: ['YYYY-MM-DD' => [take1, take2, take3, analyst]]
 
         $months = $this->getMonthData();
 
@@ -90,12 +80,10 @@ class MonthlyBalanceSeeder extends Seeder
         $chem = Chemical::where('chemical_name', $name)->first();
         if ($chem) return $chem;
 
-        // Try LIKE match on first 30 chars
         $prefix = substr($name, 0, 30);
         $chem = Chemical::where('chemical_name', 'LIKE', $prefix . '%')->first();
         if ($chem) return $chem;
 
-        // Try with partial match
         $words = explode(' ', $name);
         if (count($words) >= 2) {
             $partial = $words[0] . ' ' . $words[1];
@@ -108,9 +96,7 @@ class MonthlyBalanceSeeder extends Seeder
     private function getMonthData(): array
     {
         return [
-            // ══════════════════════════════════════════════════════
-            // MARET 2026
-            // ══════════════════════════════════════════════════════
+
             '2026-03' => [
                 ['1,10 - phenanthroline chloride monohydrate',  'g',   20,    0, []],
                 ['1,10 - phenanthroline monohydrate',           'g',   1.1,   0, []],
@@ -295,9 +281,6 @@ class MonthlyBalanceSeeder extends Seeder
                 ['Zinc sulfate heptahydrate',                   'g',   900,   0, []],
             ],
 
-            // ══════════════════════════════════════════════════════
-            // APRIL 2026
-            // ══════════════════════════════════════════════════════
             '2026-04' => [
                 ['1,10 - phenanthroline chloride monohydrate',  'g',   20,    0,     []],
                 ['1,10 - phenanthroline monohydrate',           'g',   1.1,   0,     []],
@@ -485,9 +468,6 @@ class MonthlyBalanceSeeder extends Seeder
                 ['Zinc sulfate heptahydrate',                   'g',   900,   0,     []],
             ],
 
-            // ══════════════════════════════════════════════════════
-            // MEI 2026
-            // ══════════════════════════════════════════════════════
             '2026-05' => [
                 ['1,10 - phenanthroline chloride monohydrate',  'g',   20,    0, []],
                 ['1,10 - phenanthroline monohydrate',           'g',   1.1,   0, []],
@@ -675,9 +655,6 @@ class MonthlyBalanceSeeder extends Seeder
                 ['Zinc sulfate heptahydrate',                   'g',   900,   0, []],
             ],
 
-            // ══════════════════════════════════════════════════════
-            // JUNI 2026
-            // ══════════════════════════════════════════════════════
             '2026-06' => [
                 ['1,10 - phenanthroline chloride monohydrate',  'g',   20,    0,    []],
                 ['1,10 - phenanthroline monohydrate',           'g',   1.1,   0,    []],
@@ -865,9 +842,6 @@ class MonthlyBalanceSeeder extends Seeder
                 ['Zinc sulfate heptahydrate',                   'g',   900,   0,    []],
             ],
 
-            // ══════════════════════════════════════════════════════
-            // JULI 2026
-            // ══════════════════════════════════════════════════════
             '2026-07' => [
                 ['1,10 - phenanthroline chloride monohydrate',  'g',   10,    0,    []],
                 ['1,10 - phenanthroline monohydrate',           'g',   1.1,   0,    []],
@@ -1057,3 +1031,4 @@ class MonthlyBalanceSeeder extends Seeder
         ];
     }
 }
+

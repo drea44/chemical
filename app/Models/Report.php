@@ -36,3 +36,4 @@ class Report extends Model
         };
     }
 }
+

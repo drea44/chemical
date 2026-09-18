@@ -10,8 +10,7 @@ class UserSeeder extends Seeder
 {
     public function run(): void
     {
-        // WARNING: These accounts are for DEVELOPMENT ONLY.
-        // Change passwords before any production deployment.
+
         $users = [
             [
                 'name'        => 'Dr. Ahmad Fauzan',
@@ -160,3 +159,4 @@ class UserSeeder extends Seeder
         }
     }
 }
+

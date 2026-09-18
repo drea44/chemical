@@ -6,10 +6,7 @@ use Illuminate\Support\Facades\Schema;
 
 return new class extends Migration
 {
-    /**
-     * Run the migrations.
-     * BUG-13: Add database indexes on frequently queried/filtered/sorted columns.
-     */
+
     public function up(): void
     {
         Schema::table('chemicals', function (Blueprint $table) {
@@ -36,9 +33,6 @@ return new class extends Migration
         });
     }
 
-    /**
-     * Reverse the migrations.
-     */
     public function down(): void
     {
         Schema::table('chemicals', function (Blueprint $table) {
@@ -65,3 +59,4 @@ return new class extends Migration
         });
     }
 };
+

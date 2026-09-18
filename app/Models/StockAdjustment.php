@@ -44,3 +44,4 @@ class StockAdjustment extends Model
         return $percentChange >= $threshold;
     }
 }
+

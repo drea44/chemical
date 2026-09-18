@@ -11,15 +11,15 @@ return new class extends Migration
         Schema::create('audit_logs', function (Blueprint $table) {
             $table->id();
             $table->foreignId('user_id')->nullable()->constrained('users')->onDelete('set null');
-            $table->string('action'); // created, updated, deleted, login, logout, stock_in, stock_out, adjusted
-            $table->string('module'); // Chemical, Stock, User, Auth, Settings, etc.
-            $table->string('record_type')->nullable(); // Model class
+            $table->string('action');
+            $table->string('module');
+            $table->string('record_type')->nullable();
             $table->unsignedBigInteger('record_id')->nullable();
             $table->json('old_values')->nullable();
             $table->json('new_values')->nullable();
             $table->string('ip_address', 45)->nullable();
             $table->text('user_agent')->nullable();
-            $table->string('status')->default('success'); // success, failed
+            $table->string('status')->default('success');
             $table->timestamp('created_at')->useCurrent();
         });
     }
@@ -29,3 +29,4 @@ return new class extends Migration
         Schema::dropIfExists('audit_logs');
     }
 };
+

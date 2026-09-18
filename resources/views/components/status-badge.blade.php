@@ -27,3 +27,4 @@
     <span class="w-1.5 h-1.5 rounded-full {{ $s['dot'] }} flex-shrink-0"></span>
     {{ $s['label'] }}
 </span>
+

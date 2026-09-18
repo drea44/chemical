@@ -39,3 +39,4 @@ class UpdateChemicalRequest extends FormRequest
         ];
     }
 }
+

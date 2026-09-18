@@ -13,7 +13,6 @@ class StockController extends Controller
 {
     public function __construct(private StockService $stockService) {}
 
-    // ─── Stock Change History ───────────────────────────────────────────────
     public function index(Request $request)
     {
         $query = StockTransaction::with(['chemical', 'performer']);
@@ -61,8 +60,6 @@ class StockController extends Controller
         return view('stock.index', compact('transactions', 'chemicals'));
     }
 
-    // ─── Stock In Out (unified entry point) ────────────────────────────────
-
     public function showStockInOut(Request $request)
     {
         $this->authorize('adjustStock');
@@ -81,7 +78,7 @@ class StockController extends Controller
         $this->authorize('adjustStock');
 
         $chemical = Chemical::findOrFail($request->chemical_id);
-        $type     = $request->transaction_type; // STOCK_IN or STOCK_OUT
+        $type     = $request->transaction_type;
 
         try {
             if ($type === 'STOCK_IN') {
@@ -94,7 +91,6 @@ class StockController extends Controller
                 $sign  = '-';
             }
 
-            // Reload to get updated stock
             $chemical->refresh();
 
             return redirect()->route('stock.stock-in-out')
@@ -105,22 +101,18 @@ class StockController extends Controller
         }
     }
 
-    // ─── Stock Adjustment (legacy – kept for backward compat) ──────────────
-
     public function showAdjustment(Request $request)
     {
-        // Redirect to new unified Stock In Out page
+
         return redirect()->route('stock.stock-in-out');
     }
 
     public function processAdjustment(StockAdjustmentRequest $request)
     {
-        // Redirect to new unified Stock In Out page
+
         return redirect()->route('stock.stock-in-out')
             ->with('warning', 'Direct adjustment has been replaced by Stock In Out. Please use the new form.');
     }
-
-    // ─── Stock In (legacy – redirect to Stock In Out) ───────────────────────
 
     public function showStockIn(Request $request)
     {
@@ -132,8 +124,6 @@ class StockController extends Controller
         return redirect()->route('stock.stock-in-out');
     }
 
-    // ─── Stock Out (legacy – redirect to Stock In Out) ──────────────────────
-
     public function showStockOut(Request $request)
     {
         return redirect()->route('stock.stock-in-out');
@@ -144,3 +134,4 @@ class StockController extends Controller
         return redirect()->route('stock.stock-in-out');
     }
 }
+

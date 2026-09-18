@@ -45,3 +45,4 @@ class ChemicalDailyUsage extends Model
         return (float)($this->take_1 ?? 0) + (float)($this->take_2 ?? 0) + (float)($this->take_3 ?? 0);
     }
 }
+

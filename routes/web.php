@@ -16,7 +16,6 @@ use App\Http\Controllers\TransactionController;
 use App\Http\Controllers\UserController;
 use Illuminate\Support\Facades\Route;
 
-// ─── Guest Routes ────────────────────────────────────────────────────────────
 Route::middleware('guest')->group(function () {
     Route::get('/login', [LoginController::class, 'showLoginForm'])->name('login');
     Route::post('/login', [LoginController::class, 'login']);
@@ -24,41 +23,32 @@ Route::middleware('guest')->group(function () {
 
 Route::post('/logout', [LoginController::class, 'logout'])->name('logout');
 
-// ─── Authenticated Routes ────────────────────────────────────────────────────
 Route::middleware('auth')->group(function () {
 
-    // Redirect root to dashboard
     Route::redirect('/', '/dashboard');
 
-    // Dashboard
     Route::get('/dashboard', [DashboardController::class, 'index'])->name('dashboard');
 
-    // Chemical Registry & Label Printing
     Route::get('/chemicals/{chemical}/label', [ChemicalController::class, 'printLabel'])->name('chemicals.label');
     Route::resource('chemicals', ChemicalController::class);
 
-    // Chemical Documents (COA & MSDS)
     Route::prefix('chemicals/{chemical}/documents')->name('chemicals.documents.')->group(function () {
         Route::post('/',                                        [ChemicalDocumentController::class, 'store'])->name('store');
         Route::get('/{document}/download',                     [ChemicalDocumentController::class, 'download'])->name('download');
         Route::delete('/{document}',                           [ChemicalDocumentController::class, 'destroy'])->name('destroy');
     });
 
-    // Master Data
     Route::resource('categories', CategoryController::class);
     Route::resource('suppliers',  SupplierController::class);
     Route::resource('locations',  LocationController::class);
 
-    // Stock Management
     Route::prefix('stock')->name('stock.')->group(function () {
-        // Stock Change History
+
         Route::get('/', [StockController::class, 'index'])->name('index');
 
-        // ─── Stock In Out (unified entry point) ─────────────────────────────
         Route::get('/stock-in-out',  [StockController::class, 'showStockInOut'])->name('stock-in-out');
         Route::post('/stock-in-out', [StockController::class, 'processStockInOut'])->name('stock-in-out.process');
 
-        // ─── Legacy redirects (backward compat – prevent 404 on old URLs) ───
         Route::get('/in',         [StockController::class, 'showStockIn'])->name('in');
         Route::post('/in',        [StockController::class, 'processStockIn'])->name('in.process');
         Route::get('/out',        [StockController::class, 'showStockOut'])->name('out');
@@ -67,7 +57,6 @@ Route::middleware('auth')->group(function () {
         Route::post('/adjustment',[StockController::class, 'processAdjustment'])->name('adjustment.process');
     });
 
-    // Log Chemical (Inventory & Daily Usage Record)
     Route::prefix('transactions')->name('transactions.')->group(function () {
         Route::get('/',                     [TransactionController::class, 'index'])->name('index');
         Route::get('/master-report',        [TransactionController::class, 'masterReport'])->name('master-report');
@@ -84,23 +73,19 @@ Route::middleware('auth')->group(function () {
         Route::delete('/chemicals/{chemical}', [TransactionController::class, 'destroyChemical'])->name('chemicals.destroy');
     });
 
-    // QR Scanner
     Route::get('/qr-scanner',        [QRScannerController::class, 'index'])->name('qr-scanner.index');
     Route::post('/qr-scanner/scan',  [QRScannerController::class, 'scan'])->name('qr-scanner.scan');
 
-    // Reports
     Route::get('/reports',           [ReportController::class, 'index'])->name('reports.index');
     Route::get('/reports/export-csv',[ReportController::class, 'exportCsv'])->name('reports.export-csv');
 
-    // Audit Trail
     Route::get('/audit-trail', [AuditTrailController::class, 'index'])->name('audit-trail.index');
 
-    // User Management
     Route::resource('users', UserController::class)->except(['destroy']);
     Route::post('/users/{user}/deactivate',     [UserController::class, 'deactivate'])->name('users.deactivate');
     Route::post('/users/{user}/reset-password', [UserController::class, 'resetPassword'])->name('users.reset-password');
 
-    // Settings
     Route::get('/settings',  [SettingsController::class, 'index'])->name('settings.index');
     Route::put('/settings',  [SettingsController::class, 'update'])->name('settings.update');
 });
+

@@ -36,3 +36,4 @@ class ChemicalLogDate extends Model
         return $this->hasMany(ChemicalDailyUsage::class, 'log_date_id');
     }
 }
+

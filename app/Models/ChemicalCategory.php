@@ -16,3 +16,4 @@ class ChemicalCategory extends Model
         return $this->hasMany(Chemical::class, 'category_id');
     }
 }
+

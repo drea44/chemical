@@ -37,12 +37,10 @@ class SecurityAndAuditTest extends TestCase
             'analyst_name' => 'Test Analyst',
         ]);
 
-        // 1. destroyChemical
         $this->actingAs($this->viewer)
             ->deleteJson(route('transactions.chemicals.destroy', $chemical))
             ->assertStatus(403);
 
-        // 2. updateMinimumStock
         $this->actingAs($this->viewer)
             ->postJson(route('transactions.update-minimum-stock'), [
                 'chemical_id'   => $chemical->id,
@@ -50,7 +48,6 @@ class SecurityAndAuditTest extends TestCase
             ])
             ->assertStatus(403);
 
-        // 3. updateCell
         $this->actingAs($this->viewer)
             ->postJson(route('transactions.update-cell'), [
                 'chemical_id' => $chemical->id,
@@ -60,7 +57,6 @@ class SecurityAndAuditTest extends TestCase
             ])
             ->assertStatus(403);
 
-        // 4. updateBalance
         $this->actingAs($this->viewer)
             ->postJson(route('transactions.update-balance'), [
                 'chemical_id'  => $chemical->id,
@@ -70,7 +66,6 @@ class SecurityAndAuditTest extends TestCase
             ])
             ->assertStatus(403);
 
-        // 5. updateChemical
         $this->actingAs($this->viewer)
             ->postJson(route('transactions.update-chemical'), [
                 'chemical_id' => $chemical->id,
@@ -79,7 +74,6 @@ class SecurityAndAuditTest extends TestCase
             ])
             ->assertStatus(403);
 
-        // 6. updateAnalyst
         $this->actingAs($this->viewer)
             ->postJson(route('transactions.update-analyst'), [
                 'log_date_id'  => $date->id,
@@ -87,7 +81,6 @@ class SecurityAndAuditTest extends TestCase
             ])
             ->assertStatus(403);
 
-        // 7. storeDate
         $this->actingAs($this->viewer)
             ->post(route('transactions.dates.store'), [
                 'log_date'     => '2026-04-20',
@@ -95,12 +88,10 @@ class SecurityAndAuditTest extends TestCase
             ])
             ->assertStatus(403);
 
-        // 8. deleteDate
         $this->actingAs($this->viewer)
             ->delete(route('transactions.dates.destroy', $date))
             ->assertStatus(403);
 
-        // 9. quickAddChemical
         $this->actingAs($this->viewer)
             ->post(route('transactions.quick-add-chemical'), [
                 'chemical_name' => 'Unauthorized Chemical',
@@ -112,13 +103,12 @@ class SecurityAndAuditTest extends TestCase
 
     public function test_admin_cannot_deactivate_or_demote_themselves(): void
     {
-        // Admin cannot deactivate themselves
+
         $response = $this->actingAs($this->admin)
             ->post(route('users.deactivate', $this->admin));
         $response->assertSessionHas('error', 'Anda tidak dapat menonaktifkan akun Anda sendiri.');
         $this->assertEquals('active', $this->admin->fresh()->status);
 
-        // Admin cannot demote their own role
         $response = $this->actingAs($this->admin)
             ->put(route('users.update', $this->admin), [
                 'name'       => $this->admin->name,
@@ -130,7 +120,6 @@ class SecurityAndAuditTest extends TestCase
         $response->assertSessionHas('error', 'Anda tidak dapat mengubah peran (role) akun Anda sendiri.');
         $this->assertEquals('ADMIN', $this->admin->fresh()->role);
 
-        // Admin cannot reset their own password via admin panel
         $response = $this->actingAs($this->admin)
             ->post(route('users.reset-password', $this->admin));
         $response->assertSessionHas('error', 'Anda tidak dapat mereset akun Anda sendiri dari menu ini.');
@@ -212,3 +201,4 @@ class SecurityAndAuditTest extends TestCase
         ]);
     }
 }
+

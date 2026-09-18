@@ -18,15 +18,12 @@ use Illuminate\Support\Str;
 
 class TransactionController extends Controller
 {
-    /**
-     * Master Report: Report Monitoring Chemical across months (March, April, May, June)
-     */
+
     public function masterReport(Request $request)
     {
         $search = trim($request->get('search', ''));
         $year   = $request->get('year', '2026');
 
-        // Target months for the monitoring table (March - June)
         $reportMonths = [
             $year . '-03' => 'March',
             $year . '-04' => 'April',
@@ -34,7 +31,6 @@ class TransactionController extends Controller
             $year . '-06' => 'June',
         ];
 
-        // 1. Build Chemical query
         $query = Chemical::query();
 
         if ($search) {
@@ -47,7 +43,7 @@ class TransactionController extends Controller
 
         $perPageParam = $request->get('per_page', 'all');
         if ($perPageParam === 'all' || (int)$perPageParam <= 0) {
-            $perPage = 500; // Tampilkan semua chemical sekaligus tanpa pagination
+            $perPage = 500;
         } else {
             $perPage = (int)$perPageParam;
         }
@@ -57,14 +53,12 @@ class TransactionController extends Controller
             ->paginate($perPage)
             ->withQueryString();
 
-        // 2. Eager-load monthly balances for page chemicals
         $chemicalIds = $chemicals->pluck('id');
         $balances = ChemicalMonthlyBalance::whereIn('chemical_id', $chemicalIds)
             ->whereIn('period_month', array_keys($reportMonths))
             ->get()
             ->groupBy('chemical_id');
 
-        // Map per chemical: [month => ['amount' => x, 'unit' => y]]
         $matrix = [];
         foreach ($chemicals as $chem) {
             $chemBalances = $balances->get($chem->id, collect())->keyBy('period_month');
@@ -95,15 +89,11 @@ class TransactionController extends Controller
         ));
     }
 
-    /**
-     * Warning Stock: Chemical Stock Warning with automated OK / Time to Refill status
-     */
     public function warningStock(Request $request)
     {
         $search       = trim($request->get('search', ''));
         $statusFilter = $request->get('status', 'all');
 
-        // 1. Base query
         $query = Chemical::query();
 
         if ($search) {
@@ -114,7 +104,6 @@ class TransactionController extends Controller
             });
         }
 
-        // Status filter: OK vs Time to Refill
         if ($statusFilter === 'ok') {
             $query->where(function ($q) {
                 $q->where(function ($s) {
@@ -145,18 +134,14 @@ class TransactionController extends Controller
             ->paginate($perPage)
             ->withQueryString();
 
-        // 2. Eager-load baseline Stok Awal from the earliest available monthly balance per chemical.
-        // Using earliest period ensures we get the actual "starting point" regardless of which
-        // year/month data was first recorded — avoids the previously hardcoded '2026-03'.
         $chemicalIds = $chemicals->pluck('id');
         $baselineBalances = ChemicalMonthlyBalance::whereIn('chemical_id', $chemicalIds)
             ->orderBy('period_month', 'asc')
             ->get()
             ->groupBy('chemical_id')
-            ->map(fn($group) => $group->first()) // earliest record per chemical
+            ->map(fn($group) => $group->first())
             ->keyBy('chemical_id');
 
-        // 3. Prepare display rows
         $rows = [];
         foreach ($chemicals as $c) {
             $mb = $baselineBalances->get($c->id);
@@ -178,7 +163,6 @@ class TransactionController extends Controller
             ];
         }
 
-        // 4. Overall counts for badges/counters
         $totalCount = Chemical::count();
         $refillCount = Chemical::where(function ($q) {
             $q->where(function ($s) {
@@ -205,22 +189,19 @@ class TransactionController extends Controller
 
     public function index(Request $request)
     {
-        // 1. Determine active month/year (defaults to current month)
+
         $periodMonth = $request->get('month', now()->format('Y-m'));
         $parsedMonth = Carbon::createFromFormat('Y-m', $periodMonth);
         $monthTitle  = $parsedMonth->format('F Y');
 
-        // Prev / next month for navigation
         $prevMonth = $parsedMonth->copy()->subMonth()->format('Y-m');
         $nextMonth = $parsedMonth->copy()->addMonth()->format('Y-m');
 
-        // 2. Fetch Log Dates for the month (ensure all calendar days exist)
         $logDates = ChemicalLogDate::where('period_month', $periodMonth)
             ->orderBy('log_date')
             ->orderBy('id')
             ->get();
 
-        // Only auto-fill all calendar days if this month already has seeded data
         $monthHasData = ChemicalMonthlyBalance::where('period_month', $periodMonth)->exists()
                      || $logDates->isNotEmpty();
 
@@ -244,7 +225,6 @@ class TransactionController extends Controller
                 ->get();
         }
 
-        // 3. Build Chemicals query
         $query = Chemical::query();
 
         if ($search = $request->get('search')) {
@@ -266,7 +246,6 @@ class TransactionController extends Controller
             ->paginate($perPage)
             ->withQueryString();
 
-        // 4. Load usages and monthly balances for the current page items
         $chemicalIds = $chemicals->pluck('id');
         $dateIds     = $logDates->pluck('id');
 
@@ -275,13 +254,11 @@ class TransactionController extends Controller
             ->get()
             ->keyBy('chemical_id');
 
-        // Load previous month balances to carry over saldo_akhir → saldo_awal
         $prevMonthBalances = ChemicalMonthlyBalance::whereIn('chemical_id', $chemicalIds)
             ->where('period_month', $prevMonth)
             ->get()
             ->keyBy('chemical_id');
 
-        // Load previous month daily usages to compute prev saldo_akhir
         $prevDateIds = ChemicalLogDate::where('period_month', $prevMonth)->pluck('id');
         $prevDailyUsages = ChemicalDailyUsage::whereIn('chemical_id', $chemicalIds)
             ->whereIn('log_date_id', $prevDateIds)
@@ -293,17 +270,15 @@ class TransactionController extends Controller
             ->get()
             ->groupBy('chemical_id');
 
-        // Prepare calculated metrics per chemical row
         $rows = [];
         foreach ($chemicals as $chem) {
             $mBalance    = $monthlyBalances->get($chem->id);
             $prevBalance = $prevMonthBalances->get($chem->id);
 
-            // If no balance record for current month, try to inherit saldo_akhir from previous month
             if ($mBalance) {
                 $saldoAwal = (float)$mBalance->saldo_awal;
             } elseif ($prevBalance) {
-                // Compute previous month's saldo_akhir to use as this month's saldo_awal
+
                 $prevSaldoAwal  = (float)$prevBalance->saldo_awal;
                 $prevPenerimaan = (float)($prevBalance->penerimaan ?? 0);
                 $prevPengeluaran = 0;
@@ -379,7 +354,7 @@ class TransactionController extends Controller
 
     public function storeDate(Request $request)
     {
-        // Authorization: only ADMIN / STOCK_MANAGER can add log dates
+
         abort_unless(auth()->user()?->canManageStock(), 403, 'Tidak memiliki akses untuk menambah tanggal log.');
 
         $request->validate([
@@ -390,7 +365,6 @@ class TransactionController extends Controller
         $periodMonth = Carbon::parse($request->log_date)->format('Y-m');
         $analystName = $request->analyst_name ? trim($request->analyst_name) : 'Analyst';
 
-        // Use whereDate() for SQLite compatibility (stored as "Y-m-d H:i:s", searched as "Y-m-d")
         $logDate = ChemicalLogDate::whereDate('log_date', $request->log_date)
             ->where('analyst_name', $analystName)
             ->first();
@@ -410,7 +384,7 @@ class TransactionController extends Controller
 
     public function deleteDate(ChemicalLogDate $date)
     {
-        // Authorization: only ADMIN / STOCK_MANAGER can delete log dates
+
         abort_unless(auth()->user()?->canManageStock(), 403, 'Tidak memiliki akses untuk menghapus tanggal log.');
         $period = $date->period_month;
         $date->delete();
@@ -421,7 +395,7 @@ class TransactionController extends Controller
 
     public function updateCell(Request $request)
     {
-        // Authorization: only ADMIN / STOCK_MANAGER
+
         abort_unless(auth()->user()?->canManageStock(), 403);
 
         $cleanVal = $request->value;
@@ -449,7 +423,6 @@ class TransactionController extends Controller
             $usage->updated_by = auth()->id();
             $usage->save();
 
-            // Recalculate row totals
             $logDate = ChemicalLogDate::findOrFail($request->log_date_id);
             $dateIds = ChemicalLogDate::where('period_month', $logDate->period_month)->pluck('id');
 
@@ -496,7 +469,7 @@ class TransactionController extends Controller
 
     public function updateBalance(Request $request)
     {
-        // Authorization: only ADMIN / STOCK_MANAGER
+
         abort_unless(auth()->user()?->canManageStock(), 403);
         $request->validate([
             'chemical_id'  => 'required|exists:chemicals,id',
@@ -543,7 +516,6 @@ class TransactionController extends Controller
             'period_month' => $request->period_month,
         ]);
 
-        // Recalculate
         $dateIds = ChemicalLogDate::where('period_month', $request->period_month)->pluck('id');
         $usages  = ChemicalDailyUsage::where('chemical_id', $request->chemical_id)
             ->whereIn('log_date_id', $dateIds)
@@ -575,7 +547,7 @@ class TransactionController extends Controller
 
     public function updateChemical(Request $request)
     {
-        // Authorization: only ADMIN / STOCK_MANAGER
+
         abort_unless(auth()->user()?->canManageStock(), 403);
 
         $request->validate([
@@ -600,7 +572,7 @@ class TransactionController extends Controller
 
     public function updateAnalyst(Request $request)
     {
-        // Authorization: only ADMIN / STOCK_MANAGER
+
         abort_unless(auth()->user()?->canManageStock(), 403);
         $request->validate([
             'log_date_id'  => 'required|exists:chemical_log_dates,id',
@@ -611,7 +583,6 @@ class TransactionController extends Controller
         $logDate = ChemicalLogDate::findOrFail($request->log_date_id);
         $field   = $request->field ?? 'analyst_name';
 
-        // Treat empty string same as null so clearing a name actually saves null
         $rawVal  = $request->analyst_name;
         $val     = ($rawVal !== null && trim($rawVal) !== '') ? trim($rawVal) : null;
 
@@ -627,10 +598,9 @@ class TransactionController extends Controller
 
     public function quickAddChemical(Request $request)
     {
-        // Authorization: only ADMIN / STOCK_MANAGER
+
         abort_unless(auth()->user()?->canManageStock(), 403);
 
-        // Normalize comma decimals to dot
         $input = $request->all();
         foreach (['saldo_awal', 'penerimaan', 'minimum_stock', 'current_stock'] as $f) {
             if (isset($input[$f]) && is_string($input[$f])) {
@@ -673,8 +643,6 @@ class TransactionController extends Controller
             $status = 'LOW';
         }
 
-        // Wrap chemical creation + monthly balance creation in a single transaction
-        // so partial state (chemical exists but no balances) can never occur.
         $chemical = DB::transaction(function () use (
             $request, $code, $category, $location,
             $saldoAwal, $penerimaan, $minimumStock, $periodMonth,
@@ -696,13 +664,11 @@ class TransactionController extends Controller
                 'updated_by'    => auth()->id(),
             ]);
 
-            // Create initial stock ledger entry for audit trail (P2.3: consistency with ChemicalController)
             if ($totalStock > 0) {
                 $stockService = app(StockService::class);
                 $stockService->createInitialStockTransaction($chemical);
             }
 
-            // If specific months were submitted (from Master Report)
             if ($request->has('months') && is_array($request->months)) {
                 foreach ($request->months as $mKey => $val) {
                     if ($val !== null && $val !== '') {
@@ -735,14 +701,13 @@ class TransactionController extends Controller
             return $chemical;
         });
 
-        // Generate QR code outside transaction (file I/O is best-effort)
         try {
             $qrService = app(\App\Services\QRCodeService::class);
             $qrContent = $qrService->buildContent($chemical->chemical_code);
             $chemical->qr_code = $qrService->generate($chemical->chemical_code, $qrContent);
             $chemical->save();
         } catch (\Throwable $e) {
-            // best-effort: QR failure does not roll back the chemical record
+
         }
 
         if ($request->wantsJson() || $request->ajax()) {
@@ -766,12 +731,9 @@ class TransactionController extends Controller
             ->with('success', "Chemical '{$chemical->chemical_name}' berhasil ditambahkan ke log.");
     }
 
-    /**
-     * Update minimum_stock for a chemical (called via AJAX from Warning Stock / Master Report edit modal).
-     */
     public function updateMinimumStock(Request $request)
     {
-        // Authorization: only ADMIN / STOCK_MANAGER
+
         abort_unless(auth()->user()?->canManageStock(), 403);
 
         $minStock = $request->minimum_stock;
@@ -799,34 +761,26 @@ class TransactionController extends Controller
         ]);
     }
 
-    /**
-     * Delete a chemical and all its associated log data.
-     */
     public function destroyChemical(Chemical $chemical)
     {
-        // Authorization: only ADMIN can delete chemicals from the log
+
         abort_unless(auth()->user()?->isAdmin(), 403, 'Hanya Administrator yang dapat menghapus chemical.');
 
         $name = $chemical->chemical_name;
         $id   = $chemical->id;
 
         DB::transaction(function () use ($chemical) {
-            // 1. Remove daily usage records (cascade, but explicit)
+
             $chemical->dailyUsages()->delete();
 
-            // 2. Remove monthly balance records (cascade, but explicit)
             $chemical->monthlyBalances()->delete();
 
-            // 3. Remove stock_transactions (RESTRICT FK — must delete manually)
             DB::table('stock_transactions')->where('chemical_id', $chemical->id)->delete();
 
-            // 4. Remove stock_adjustments (RESTRICT FK — must delete manually)
             DB::table('stock_adjustments')->where('chemical_id', $chemical->id)->delete();
 
-            // 5. Remove chemical_documents (cascade, but explicit)
             DB::table('chemical_documents')->where('chemical_id', $chemical->id)->delete();
 
-            // 6. Finally delete the chemical itself
             $chemical->delete();
         });
 
@@ -842,7 +796,7 @@ class TransactionController extends Controller
     public static function getReferenceChemicalNames(): array
     {
         return [
-            // Sheet 1 (1-21)
+
             '1,10 - phenanthroline chloride monohydrate',
             '1,10 - phenanthroline monohydrate',
             '1,8-Dihydroxy-2-(4-Sulfophenylazo)-naphthalene-3,6-disulfonic acid trisodium salt',
@@ -866,7 +820,6 @@ class TransactionController extends Controller
             'Ammonium acetate',
             'Ammonium fluoride',
 
-            // Sheet 2 (22-42)
             'Ammonium heptamolybdate tetrahydrate',
             'Ammonium iron (III) sulfate dodecahydrate',
             'Amonium chloride',
@@ -889,7 +842,6 @@ class TransactionController extends Controller
             'Chloramin T trihydrate',
             'Chloroform',
 
-            // Sheet 3 (43-63)
             'Chromatropic Acid disodium salt',
             'Chromium (VI) oxide',
             'Citric acid monohydrate',
@@ -912,7 +864,6 @@ class TransactionController extends Controller
             'Devarda alloy',
             'Di-ammonium oxalate monohydrate',
 
-            // Sheet 4 (64-84)
             'Di-amonium hydrogen phosphate',
             'Dikalium hydrogen phosphat',
             'Dimedone',
@@ -935,7 +886,6 @@ class TransactionController extends Controller
             'Glass fiber filter 0,45 mikron 47 mm 10 pk PALL',
             'Gelatine',
 
-            // Sheet 5 (85-105)
             'Hexamethylene-tetramine',
             'Hydrazinium sulfate',
             'Hydrochloric acid 37%',
@@ -958,7 +908,6 @@ class TransactionController extends Controller
             'Kertas saring 41 Diameter 125 mm Whatman',
             'Kertas saring 42 Diameter 125 mm Whatman',
 
-            // Sheet 6 (106-126)
             'Kertas saring 43 Diameter 125 mm Whatman',
             'Kertas saring 0,45 mikron Diameter 47 mm Whatman',
             'Kertas saring 0,45 mikron Diameter 47 mm PALL',
@@ -981,7 +930,6 @@ class TransactionController extends Controller
             'MacConkey Agar',
             'Magnesium (II) sulfate monohydrate',
 
-            // Sheet 7 (127-148)
             'Magnesium chloride',
             'Magnesium chloride hexahydrate',
             'Magnesium oxide',
@@ -1005,7 +953,6 @@ class TransactionController extends Controller
             'Micropipette plus vol 0,5 ml',
             'MUG EC Broth',
 
-            // Sheet 8 (149-169)
             'N-(1-Naphthyl) ethylenediamine dihydro-chloride',
             'N,N-diethyl-1,4 phenyle diammonium sulfat',
             'N,N-dimethyl-1,4 phenylene diamonium dichloride',
@@ -1028,7 +975,6 @@ class TransactionController extends Controller
             'Pewarnaan gram (crystal violet)',
             'Pewarnaan gram (lugol)',
 
-            // Sheet 9 (170-190)
             'Pewarnaan gram (safranin)',
             'Phenol',
             'Phenol Red (Phenol sulfonphthalein)',
@@ -1051,7 +997,6 @@ class TransactionController extends Controller
             'Potassium Iodide',
             'Potassium nitrate',
 
-            // Sheet 10 (191-211)
             'Potassium permanganat',
             'Potassium peroxodisulfate',
             'Potassium sodium tartrate tetrahydrate',
@@ -1074,7 +1019,6 @@ class TransactionController extends Controller
             'Sodium chloride',
             'Sodium dihydrogen phospate dihydrate',
 
-            // Sheet 11 (212-232)
             'Sodium fluoride',
             'Sodium hydrogen Carbonate',
             'Sodium hydrogen sulfite',
@@ -1097,7 +1041,6 @@ class TransactionController extends Controller
             'Susu bear brand',
             'Thiocetamide',
 
-            // Sheet 12 (233-248)
             'Tin (II) chloride',
             'Tisu paseo',
             'Titriplex',
@@ -1117,3 +1060,4 @@ class TransactionController extends Controller
         ];
     }
 }
+

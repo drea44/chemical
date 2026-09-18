@@ -11,12 +11,12 @@ return new class extends Migration
         Schema::create('reports', function (Blueprint $table) {
             $table->id();
             $table->string('report_code')->unique();
-            $table->string('report_type'); // inventory_summary, stock_movement, expiry_report, usage_report, adjustment_report
+            $table->string('report_type');
             $table->foreignId('generated_by')->nullable()->constrained('users')->onDelete('set null');
             $table->date('period_start')->nullable();
             $table->date('period_end')->nullable();
             $table->string('file_path')->nullable();
-            $table->string('format')->default('pdf'); // pdf, excel, csv
+            $table->string('format')->default('pdf');
             $table->timestamp('created_at')->useCurrent();
         });
     }
@@ -26,3 +26,4 @@ return new class extends Migration
         Schema::dropIfExists('reports');
     }
 };
+

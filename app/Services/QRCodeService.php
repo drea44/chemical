@@ -11,16 +11,12 @@ use Illuminate\Support\Str;
 
 class QRCodeService
 {
-    /**
-     * Generate a QR code SVG for a chemical and store it.
-     * Returns the public path to the SVG file.
-     */
+
     public function generate(string $chemicalCode, string $content): string
     {
         $filename  = 'qrcodes/' . $chemicalCode . '.svg';
         $publicPath = public_path($filename);
 
-        // Ensure directory exists
         if (!is_dir(public_path('qrcodes'))) {
             mkdir(public_path('qrcodes'), 0755, true);
         }
@@ -33,7 +29,7 @@ class QRCodeService
             $writer = new Writer($renderer);
             $writer->writeFile($content, $publicPath);
         } catch (\Throwable $e) {
-            // Fallback: generate inline SVG placeholder
+
             $svg = $this->generatePlaceholderSvg($chemicalCode);
             file_put_contents($publicPath, $svg);
         }
@@ -41,9 +37,6 @@ class QRCodeService
         return '/' . $filename;
     }
 
-    /**
-     * Delete QR code file for a chemical.
-     */
     public function delete(string $chemicalCode): void
     {
         $path = public_path('qrcodes/' . $chemicalCode . '.svg');
@@ -52,9 +45,6 @@ class QRCodeService
         }
     }
 
-    /**
-     * Build the QR code content string for a chemical.
-     */
     public function buildContent(string $chemicalCode): string
     {
         return 'CHEM:' . $chemicalCode;
@@ -71,3 +61,4 @@ class QRCodeService
         SVG;
     }
 }
+

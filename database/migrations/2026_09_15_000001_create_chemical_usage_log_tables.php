@@ -8,12 +8,12 @@ return new class extends Migration
 {
     public function up(): void
     {
-        // 1. Table for tracking date columns in the log sheet (e.g. 01/04/2026 Fitria)
+
         Schema::create('chemical_log_dates', function (Blueprint $table) {
             $table->id();
             $table->date('log_date');
             $table->string('analyst_name')->default('Analyst');
-            $table->string('period_month', 7); // e.g. '2026-04'
+            $table->string('period_month', 7);
             $table->text('notes')->nullable();
             $table->foreignId('created_by')->nullable()->constrained('users')->onDelete('set null');
             $table->timestamps();
@@ -22,7 +22,6 @@ return new class extends Migration
             $table->index(['period_month', 'log_date']);
         });
 
-        // 2. Table for daily usage amounts (Take 1, Take 2, Take 3) per chemical per date
         Schema::create('chemical_daily_usages', function (Blueprint $table) {
             $table->id();
             $table->foreignId('chemical_id')->constrained('chemicals')->onDelete('cascade');
@@ -36,11 +35,10 @@ return new class extends Migration
             $table->unique(['chemical_id', 'log_date_id']);
         });
 
-        // 3. Table for monthly balances (Saldo Awal and Penerimaan) per chemical per period
         Schema::create('chemical_monthly_balances', function (Blueprint $table) {
             $table->id();
             $table->foreignId('chemical_id')->constrained('chemicals')->onDelete('cascade');
-            $table->string('period_month', 7); // e.g. '2026-04'
+            $table->string('period_month', 7);
             $table->decimal('saldo_awal', 14, 4)->default(0);
             $table->decimal('penerimaan', 14, 4)->default(0);
             $table->timestamps();
@@ -56,3 +54,4 @@ return new class extends Migration
         Schema::dropIfExists('chemical_log_dates');
     }
 };
+

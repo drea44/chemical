@@ -27,7 +27,6 @@ class LoginController extends Controller
             'password' => 'required|string',
         ]);
 
-        // Rate limiting
         $key = 'login:' . Str::lower($request->input('email')) . '|' . $request->ip();
         if (RateLimiter::tooManyAttempts($key, 5)) {
             $seconds = RateLimiter::availableIn($key);
@@ -40,7 +39,7 @@ class LoginController extends Controller
         $remember    = $request->boolean('remember');
 
         if (Auth::attempt($credentials, $remember)) {
-            // Check user is active
+
             if (Auth::user()->status !== 'active') {
                 Auth::logout();
                 throw ValidationException::withMessages([
@@ -51,7 +50,6 @@ class LoginController extends Controller
             RateLimiter::clear($key);
             $request->session()->regenerate();
 
-            // Update last login timestamp
             Auth::user()->update(['last_login_at' => now()]);
 
             AuditLogService::logLogin(Auth::id(), true);
@@ -60,7 +58,7 @@ class LoginController extends Controller
         }
 
         RateLimiter::hit($key);
-        // Log failed attempt without storing the submitted email (privacy & data minimization)
+
         AuditLogService::log('login', 'Auth', 'User', null, null, ['attempt' => 'failed'], 'failed');
 
         throw ValidationException::withMessages([
@@ -78,3 +76,4 @@ class LoginController extends Controller
         return redirect()->route('login');
     }
 }
+

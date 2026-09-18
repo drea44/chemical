@@ -13,7 +13,6 @@
 
 <div class="grid grid-cols-1 lg:grid-cols-4 gap-5">
 
-    {{-- LEFT: Sidebar Nav --}}
     <div class="lg:col-span-1">
         <div class="bg-white border border-gray-200 rounded-lg overflow-hidden">
             @foreach([
@@ -35,14 +34,13 @@
         </div>
     </div>
 
-    {{-- RIGHT: Content Area --}}
     <div class="lg:col-span-3">
         <form method="POST" action="{{ route('settings.update') }}" class="space-y-5">
             @csrf @method('PUT')
             <input type="hidden" name="tab" value="{{ $activeTab }}">
 
             @if($activeTab === 'general')
-            {{-- General Configuration --}}
+
             <div class="bg-white border border-gray-200 rounded-lg p-6">
                 <h2 class="text-base font-bold text-gray-900 mb-1">General Configuration</h2>
                 <p class="text-xs text-gray-500 mb-6">Basic parameters for terminal identification and localized metrics.</p>
@@ -92,7 +90,6 @@
                 </div>
             </div>
 
-            {{-- Notification Hub --}}
             <div class="bg-white border border-gray-200 rounded-lg p-6">
                 <h2 class="text-base font-bold text-gray-900 mb-1">Notification Hub</h2>
                 <p class="text-xs text-gray-500 mb-6">System status changes and critical warning channels routing configuration.</p>
@@ -125,7 +122,7 @@
                             <p class="text-sm font-semibold text-gray-800">{{ $item['label'] }}</p>
                             <p class="text-xs text-gray-400 mt-0.5">{{ $item['desc'] }}</p>
                         </div>
-                        {{-- iOS-style toggle --}}
+
                         <label class="relative inline-flex items-center cursor-pointer flex-shrink-0 mt-0.5">
                             <input type="checkbox" name="{{ $item['key'] }}" value="1"
                                    {{ $s($item['key'], $item['default']) === '1' ? 'checked' : '' }}
@@ -138,7 +135,6 @@
                 </div>
             </div>
 
-            {{-- Standard Stock Warning Metrics --}}
             <div class="bg-white border border-gray-200 rounded-lg p-6">
                 <h2 class="text-base font-bold text-gray-900 mb-1">Standard Stock Warning Metrics</h2>
                 <p class="text-xs text-gray-500 mb-6">Unified parameters used to trigger critical status indicators across the entire workspace registry.</p>
@@ -168,7 +164,6 @@
                     </div>
                 </div>
 
-                {{-- Action Buttons --}}
                 <div class="flex items-center justify-end gap-3 pt-4 border-t border-gray-100">
                     <a href="{{ route('settings.index') }}"
                        class="px-5 py-2 border border-gray-300 text-gray-600 text-sm font-medium rounded hover:bg-gray-50 transition-colors">
@@ -231,3 +226,4 @@
 </div>
 
 @endsection
+

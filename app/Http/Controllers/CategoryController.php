@@ -21,7 +21,7 @@ class CategoryController extends Controller
 
     public function create()
     {
-        $this->authorize('create', \App\Models\Chemical::class); // ADMIN/STOCK_MANAGER
+        $this->authorize('create', \App\Models\Chemical::class);
         return view('categories.create');
     }
 
@@ -81,3 +81,4 @@ class CategoryController extends Controller
             ->with('success', "Category deleted.");
     }
 }
+

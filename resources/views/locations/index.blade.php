@@ -19,7 +19,6 @@
     @endcan
 </div>
 
-<!-- Filters -->
 <div class="bg-white border border-gray-200 rounded-lg p-4 mb-5">
     <form method="GET" class="flex flex-wrap gap-3">
         <div class="relative flex-1 min-w-48">
@@ -34,7 +33,6 @@
     </form>
 </div>
 
-<!-- Table -->
 <div class="bg-white border border-gray-200 rounded-lg overflow-hidden">
     <div class="overflow-x-auto">
         <table class="w-full text-sm">
@@ -119,3 +117,4 @@
 </div>
 
 @endsection
+

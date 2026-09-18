@@ -12,9 +12,7 @@ use Illuminate\Support\Str;
 
 class ChemicalDocumentController extends Controller
 {
-    /**
-     * Upload a new COA or MSDS document for a chemical.
-     */
+
     public function store(Request $request, Chemical $chemical)
     {
         $this->authorize('update', $chemical);
@@ -30,7 +28,6 @@ class ChemicalDocumentController extends Controller
             'document_type.required' => 'Pilih tipe dokumen (COA atau MSDS).',
         ]);
 
-        // Second-layer MIME validation: verify actual file content matches allowed types
         $file = $request->file('document_file');
         $allowedMimes = ['application/pdf', 'image/jpeg', 'image/png'];
         if (!in_array($file->getMimeType(), $allowedMimes)) {
@@ -38,7 +35,6 @@ class ChemicalDocumentController extends Controller
         }
         $type = $request->input('document_type');
 
-        // Store in storage/app/public/documents/{chemical_code}/
         $folder   = 'documents/' . Str::slug($chemical->chemical_code);
         $filename = $type . '_' . now()->format('Ymd_His') . '_' . Str::random(6) . '.' . $file->getClientOriginalExtension();
         $path     = $file->storeAs($folder, $filename, 'public');
@@ -63,9 +59,6 @@ class ChemicalDocumentController extends Controller
         return back()->with('success', "Dokumen {$type} '{$document->original_name}' berhasil diupload.");
     }
 
-    /**
-     * Download / view a document.
-     */
     public function download(Chemical $chemical, ChemicalDocument $document)
     {
         $this->authorize('view', $chemical);
@@ -79,16 +72,12 @@ class ChemicalDocumentController extends Controller
         return Storage::disk('public')->download($document->file_path, $document->original_name);
     }
 
-    /**
-     * Delete a document.
-     */
     public function destroy(Chemical $chemical, ChemicalDocument $document)
     {
         $this->authorize('update', $chemical);
 
         abort_if($document->chemical_id !== $chemical->id, 403);
 
-        // Delete physical file
         if (Storage::disk('public')->exists($document->file_path)) {
             Storage::disk('public')->delete($document->file_path);
         }
@@ -105,3 +94,4 @@ class ChemicalDocumentController extends Controller
         return back()->with('success', "Dokumen '{$name}' berhasil dihapus.");
     }
 }
+

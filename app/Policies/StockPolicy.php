@@ -21,3 +21,4 @@ class StockPolicy
         return in_array($user->role, ['ADMIN', 'STOCK_MANAGER']);
     }
 }
+

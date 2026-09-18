@@ -5,11 +5,9 @@
 @section('content')
 <div class="flex h-screen">
 
-    <!-- LEFT: Login Form -->
     <div class="w-full lg:w-5/12 flex flex-col justify-center px-8 sm:px-16 lg:px-20 bg-white">
         <div class="max-w-sm mx-auto w-full">
 
-            <!-- Logo -->
             <div class="flex items-center gap-3 mb-10">
                 <div class="w-9 h-9 rounded-lg flex items-center justify-center" style="background:#2563eb;">
                     <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="white" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round">
@@ -83,7 +81,6 @@
                 </button>
             </form>
 
-            <!-- Dev credentials note -->
             <div class="mt-8 p-4 rounded-lg border border-gray-200 bg-gray-50">
                 <p class="text-xs font-semibold text-gray-500 uppercase tracking-wide mb-2">Development Accounts</p>
                 <div class="space-y-1 text-xs text-gray-500">
@@ -97,13 +94,11 @@
         </div>
     </div>
 
-    <!-- RIGHT: Dark Navy Panel -->
     <div class="hidden lg:flex lg:w-7/12 flex-col justify-between p-16" style="background:#0f172a;">
 
-        <!-- Molecular SVG Illustration -->
         <div class="flex-1 flex items-center justify-center">
             <svg width="420" height="360" viewBox="0 0 420 360" fill="none" xmlns="http://www.w3.org/2000/svg" opacity="0.85">
-                <!-- Atoms (circles) -->
+
                 <circle cx="210" cy="180" r="18" fill="#2563eb" opacity="0.9"/>
                 <circle cx="120" cy="110" r="13" fill="#3b82f6" opacity="0.7"/>
                 <circle cx="310" cy="100" r="16" fill="#1d4ed8" opacity="0.8"/>
@@ -116,7 +111,6 @@
                 <circle cx="150" cy="50"  r="10" fill="#3b82f6" opacity="0.55"/>
                 <circle cx="280" cy="50"  r="8"  fill="#60a5fa" opacity="0.5"/>
 
-                <!-- Bonds (lines) -->
                 <line x1="210" y1="180" x2="120" y2="110" stroke="#3b82f6" stroke-width="2" opacity="0.5"/>
                 <line x1="210" y1="180" x2="310" y2="100" stroke="#3b82f6" stroke-width="2" opacity="0.5"/>
                 <line x1="210" y1="180" x2="80"  y2="240" stroke="#60a5fa" stroke-width="1.5" opacity="0.4"/>
@@ -130,7 +124,6 @@
                 <line x1="320" y1="260" x2="260" y2="310" stroke="#3b82f6" stroke-width="1.5" opacity="0.35"/>
                 <line x1="80"  y1="240" x2="170" y2="290" stroke="#60a5fa" stroke-width="1"   opacity="0.3"/>
 
-                <!-- Atom labels -->
                 <text x="210" y="185" text-anchor="middle" font-family="monospace" font-size="10" fill="white" font-weight="600">C</text>
                 <text x="120" y="115" text-anchor="middle" font-family="monospace" font-size="8"  fill="#93c5fd">H</text>
                 <text x="310" y="105" text-anchor="middle" font-family="monospace" font-size="9"  fill="#93c5fd">O</text>
@@ -140,7 +133,6 @@
             </svg>
         </div>
 
-        <!-- Text -->
         <div class="max-w-md">
             <h2 class="text-3xl font-bold text-white mb-4 leading-snug">
                 A comprehensive, digital-first operating system for critical chemical stock management.
@@ -177,3 +169,4 @@ function togglePassword() {
 }
 </script>
 @endsection
+

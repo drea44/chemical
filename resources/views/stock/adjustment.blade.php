@@ -184,7 +184,6 @@
         cursor: default;
     }
 
-    /* ─── Custom Dropdowns: ALWAYS OPEN DOWNWARD ─── */
     .sio-dropdown {
         position: relative;
         width: 100%;
@@ -208,7 +207,7 @@
         box-sizing: border-box;
         text-align: left;
     }
-    /* CRITICAL: Force all SVG icons to fixed size (override Tailwind v4 preflight) */
+
     .sio-container svg {
         display: inline-block !important;
         vertical-align: middle !important;
@@ -216,7 +215,7 @@
         max-width: 1.25rem !important;
         max-height: 1.25rem !important;
     }
-    
+
     .sio-dropdown-trigger svg,
     .sio-dir-btn svg,
     .sio-banner svg,
@@ -231,8 +230,7 @@
         flex-shrink: 0 !important;
         display: inline-block !important;
     }
-    
-    /* Extra specificity for dropdown chevrons */
+
     button.sio-dropdown-trigger > svg,
     .sio-dropdown-chevron {
         width: 1rem !important;
@@ -256,7 +254,7 @@
     }
     .sio-dropdown-menu {
         position: absolute;
-        top: calc(100% + 4px); /* FORCED DOWNWARD */
+        top: calc(100% + 4px);
         left: 0;
         right: 0;
         background: #fff;
@@ -381,7 +379,7 @@
     }
     .sio-btn-submit:hover:not(:disabled) { background: #b45d03; }
     .sio-btn-submit:disabled { opacity: .5; cursor: not-allowed; }
-    /* Preview */
+
     .sio-preview-row {
         display: flex;
         align-items: center;
@@ -407,7 +405,6 @@
 
 <div class="sio-container">
 
-{{-- Page Heading --}}
 <div style="margin-bottom:1.5rem;">
     <h1 style="font-size:1.375rem;font-weight:700;color:#111827;margin:0 0 0.25rem;">Stock Adjustment</h1>
     <p style="font-size:0.875rem;color:#6b7280;margin:0;">Perform direct physical counts reconciliation, write-offs, or safety disposals.</p>
@@ -419,16 +416,13 @@
       @submit.prevent="submitForm()">
     @csrf
 
-    {{-- Hidden fields --}}
     <input type="hidden" name="transaction_type" :value="direction === 'increase' ? 'STOCK_IN' : 'STOCK_OUT'">
     <input type="hidden" name="reference_number" value="{{ old('reference_number', 'ADJ-' . date('Ymd') . '-' . strtoupper(\Illuminate\Support\Str::random(4))) }}">
 
     <div class="sio-layout">
 
-        {{-- ── LEFT: Form Card ── --}}
         <div class="sio-form-card">
 
-            {{-- Warning Banner --}}
             <div class="sio-banner">
                 <svg style="width:1.125rem;height:1.125rem;flex-shrink:0;color:#b45309;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z"/></svg>
                 <p style="font-size:0.8125rem;font-weight:500;color:#92400e;margin:0;line-height:1.4;">
@@ -436,12 +430,10 @@
                 </p>
             </div>
 
-            {{-- Row 1: Target Substance + Current Balance --}}
             <div class="sio-row-2" :style="chemOpen ? 'position: relative; z-index: 30;' : ''">
                 <div>
                     <label class="sio-label" for="chemical_id">Target Substance <span style="color:#ef4444;">*</span></label>
-                    
-                    {{-- Custom Downward-Opening Dropdown for Substance --}}
+
                     <div class="sio-dropdown" :class="chemOpen ? 'is-open' : ''" @click.outside="chemOpen = false" @keydown.escape="chemOpen = false">
                         <input type="hidden" name="chemical_id" :value="selectedChemicalId" id="chemical_id">
 
@@ -461,10 +453,9 @@
                             </svg>
                         </button>
 
-                        {{-- Dropdown Menu: ALWAYS OPENS DOWNWARD --}}
                         <div x-show="chemOpen" x-cloak
                              class="sio-dropdown-menu">
-                            {{-- Search input --}}
+
                             <div class="sio-search-box">
                                 <div style="position: relative;">
                                     <input type="text"
@@ -479,7 +470,7 @@
                                     </svg>
                                 </div>
                             </div>
-                            {{-- List of items --}}
+
                             <div class="sio-options-list">
                                 <template x-for="chem in filteredChemicals" :key="chem.id">
                                     <div @click="selectChemical(chem)"
@@ -511,11 +502,10 @@
                 </div>
             </div>
 
-            {{-- Row 2: Adjustment Direction --}}
             <div style="margin-bottom:1.25rem;">
                 <label class="sio-label">Adjustment Direction</label>
                 <div class="sio-dir-grid">
-                    {{-- Increase --}}
+
                     <div class="sio-dir-btn" :class="direction==='increase' ? 'active-inc' : ''" @click="direction='increase'">
                         <span class="sio-radio" :style="direction==='increase' ? 'border-color:#3b82f6;' : ''">
                             <span class="sio-radio-dot" x-show="direction==='increase'" style="background:#3b82f6;"></span>
@@ -524,7 +514,7 @@
                             Increase (+) / Refill / Surplus Found
                         </span>
                     </div>
-                    {{-- Decrease --}}
+
                     <div class="sio-dir-btn" :class="direction==='decrease' ? 'active-dec' : ''" @click="direction='decrease'">
                         <span class="sio-radio" :style="direction==='decrease' ? 'border-color:#ef4444;' : ''">
                             <span class="sio-radio-dot" x-show="direction==='decrease'" style="background:#ef4444;"></span>
@@ -536,7 +526,6 @@
                 </div>
             </div>
 
-            {{-- Row 3: Qty + Unit + Reason --}}
             <div class="sio-row-3" :style="(reasonOpen || unitOpen) ? 'position: relative; z-index: 20;' : ''">
                 <div>
                     <label class="sio-label" for="quantity">Adjustment Quantity <span style="color:#ef4444;">*</span></label>
@@ -551,7 +540,7 @@
                 </div>
                 <div>
                     <label class="sio-label" for="unit">Measurement Unit</label>
-                    {{-- Downward-Opening Unit Dropdown --}}
+
                     <div class="sio-dropdown" :class="unitOpen ? 'is-open' : ''" @click.outside="unitOpen = false" @keydown.escape="unitOpen = false">
                         <input type="hidden" name="unit" :value="selectedUnit" id="unit">
                         <button type="button"
@@ -580,7 +569,7 @@
                 </div>
                 <div>
                     <label class="sio-label" for="reason">Primary Reason Code <span style="color:#ef4444;">*</span></label>
-                    {{-- Downward-Opening Reason Dropdown --}}
+
                     <div class="sio-dropdown" :class="reasonOpen ? 'is-open' : ''" @click.outside="reasonOpen = false" @keydown.escape="reasonOpen = false">
                         <input type="hidden" name="reason" :value="selectedReason" id="reason">
                         <button type="button"
@@ -615,7 +604,6 @@
                 </div>
             </div>
 
-            {{-- Audit Notes --}}
             <div style="margin-bottom:1.25rem;">
                 <label class="sio-label" for="notes">Audit Notes & Explanation</label>
                 <textarea id="notes" name="notes" rows="3"
@@ -624,7 +612,6 @@
                           style="resize:vertical;min-height:4.5rem;">{{ old('notes') }}</textarea>
             </div>
 
-            {{-- Investigator + Verification Date --}}
             <div class="sio-row-2" style="margin-bottom:1.5rem;">
                 <div>
                     <label class="sio-label">Authorized Investigator</label>
@@ -649,7 +636,6 @@
                 </div>
             </div>
 
-            {{-- Actions --}}
             <div class="sio-actions">
                 <a href="{{ route('stock.index') }}" class="sio-btn-cancel">Cancel</a>
                 <button type="submit" class="sio-btn-submit" :disabled="submitting">
@@ -658,7 +644,6 @@
             </div>
         </div>
 
-        {{-- ── RIGHT: Preview Card ── --}}
         <div class="sio-preview-card">
             <h2 style="font-size:1rem;font-weight:700;color:#111827;margin:0 0 1.25rem;">Adjustment Preview</h2>
 
@@ -697,14 +682,12 @@
 
             </div>
 
-            {{-- Insufficient stock warning --}}
             <div x-show="direction==='decrease' && selectedChemical && qty > selectedChemical.stock"
                  x-cloak class="sio-alert sio-alert-red">
                 <svg style="width:1rem;height:1rem;flex-shrink:0;color:#ef4444;margin-top:0.125rem;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 8v4m0 4h.01M21 12a9 9 0 11-18 0 9 9 0 0118 0z"/></svg>
                 <p style="font-size:0.75rem;color:#b91c1c;margin:0;line-height:1.4;">Insufficient stock. Requested reduction exceeds current system balance.</p>
             </div>
 
-            {{-- Large adjustment warning --}}
             <div x-show="selectedChemical && qty > 0 && selectedChemical.stock > 0 && (qty/selectedChemical.stock) >= 0.20 && !(direction==='decrease' && qty > selectedChemical.stock)"
                  x-cloak class="sio-alert sio-alert-amber">
                 <svg style="width:1rem;height:1rem;flex-shrink:0;color:#d97706;margin-top:0.125rem;" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M12 9v2m0 4h.01m-6.938 4h13.856c1.54 0 2.502-1.667 1.732-3L13.732 4c-.77-1.333-2.694-1.333-3.464 0L3.34 16c-.77 1.333.192 3 1.732 3z"/></svg>
@@ -712,13 +695,11 @@
             </div>
 
         </div>
-        {{-- end right --}}
 
     </div>
 </form>
 
 </div>
-{{-- end sio-container --}}
 
 @endsection
 
@@ -758,13 +739,11 @@ function stockAdjForm() {
         direction: '{{ old('transaction_type') === 'STOCK_IN' ? 'increase' : 'decrease' }}',
         submitting: false,
 
-        // Dropdowns state
         chemOpen: false,
         chemSearch: '',
         reasonOpen: false,
         unitOpen: false,
 
-        // Validation errors
         chemError: '',
         reasonError: '',
 
@@ -829,3 +808,4 @@ function stockAdjForm() {
 }
 </script>
 @endpush
+

@@ -51,7 +51,6 @@
             background: #f8fafc;
         }
 
-        /* Label Container: Standard Lab Bottle / Container sticker */
         .label-container {
             max-width: 540px;
             margin: 0 auto;
@@ -246,3 +245,4 @@
 
 </body>
 </html>
+

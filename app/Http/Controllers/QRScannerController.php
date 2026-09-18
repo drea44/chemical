@@ -23,7 +23,6 @@ class QRScannerController extends Controller
 
         $chemical = null;
 
-        // Support CHEM:-prefixed QR codes (primary format)
         $chemicalCode = str_starts_with($code, 'CHEM:')
             ? substr($code, 5)
             : $code;
@@ -32,9 +31,6 @@ class QRScannerController extends Controller
             ->orWhere('batch_number', $chemicalCode)
             ->with(['category', 'location'])
             ->first();
-
-        // NOTE: Intentionally NOT supporting raw numeric ID lookup to prevent IDOR enumeration.
-        // Also removed URL-pattern matching — QR codes should only contain CHEM: or chemical_code values.
 
         if (!$chemical) {
             return response()->json([
@@ -62,3 +58,4 @@ class QRScannerController extends Controller
         ]);
     }
 }
+

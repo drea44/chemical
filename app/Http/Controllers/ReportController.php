@@ -15,7 +15,6 @@ class ReportController extends Controller
     {
         $tab = $request->get('tab', 'monitoring_current');
 
-        // ── Stats (single aggregated query) ─────────────────────────────────
         $statusCounts = Chemical::selectRaw('status, count(*) as count')
             ->groupBy('status')
             ->pluck('count', 'status');
@@ -32,22 +31,18 @@ class ReportController extends Controller
         $inventorySummary = Chemical::with(['category', 'location'])
             ->orderBy('id')->get();
 
-        // ── Monitoring periods — dynamic: last 4 complete months ─────────────
         [$currentPeriod, $lastPeriod, $twoPeriod, $threePeriod] = $this->getReportPeriods();
 
-        // ── Monitoring reports (BUG-10 fix: single aggregate per month) ──────
         $monitoringReportJune   = $this->buildMonitoringReport($currentPeriod['start'], $currentPeriod['end'], [], true);
         $monitoringReportMay    = $this->buildMonitoringReport($lastPeriod['start'],   $lastPeriod['end'],   [$currentPeriod]);
         $monitoringReportApril  = $this->buildMonitoringReport($twoPeriod['start'],    $twoPeriod['end'],    [$currentPeriod, $lastPeriod]);
         $monitoringReportMarch  = $this->buildMonitoringReport($threePeriod['start'],  $threePeriod['end'],  [$currentPeriod, $lastPeriod, $twoPeriod]);
 
-        // Aliases for view compatibility
         $monitoringReportCurrent = $monitoringReportJune;
         $monitoringReportLast    = $monitoringReportMay;
         $monitoringReportTwo     = $monitoringReportApril;
         $monitoringReportThree   = $monitoringReportMarch;
 
-        // ── Stock Movement (filtered) ─────────────────────────────────────────
         $stockMovement = StockTransaction::with(['chemical', 'performer'])
             ->when($request->date_from, fn($q) => $q->whereDate('transaction_date', '>=', $request->date_from))
             ->when($request->date_to,   fn($q) => $q->whereDate('transaction_date', '<=', $request->date_to))
@@ -55,13 +50,11 @@ class ReportController extends Controller
             ->paginate(50, ['*'], 'movement_page')
             ->withQueryString();
 
-        // ── Expiry Report ─────────────────────────────────────────────────────
         $expiryReport = Chemical::whereNotNull('expiry_date')
             ->orderBy('expiry_date')
             ->with('location')
             ->get();
 
-        // ── Adjustment Report ─────────────────────────────────────────────────
         $adjustmentReport = StockAdjustment::with(['chemical', 'adjuster', 'approver'])
             ->orderBy('created_at', 'desc')
             ->paginate(50, ['*'], 'adj_page')
@@ -77,26 +70,15 @@ class ReportController extends Controller
         ));
     }
 
-    /**
-     * Build a monitoring report for a given period.
-     *
-     * @param  Carbon       $periodStart      Start of the period being reported
-     * @param  Carbon       $periodEnd        End of the period being reported
-     * @param  array        $laterMonths      Array of ['start'=>Carbon, 'end'=>Carbon] for months
-     *                                        AFTER the period (needed to reconstruct period-end stock)
-     * @param  bool         $isCurrentMonth   If true, saldo_akhir = current_stock (no reconstruction needed)
-     * @return \Illuminate\Support\Collection
-     */
     private function buildMonitoringReport(
         Carbon $periodStart,
         Carbon $periodEnd,
         array $laterMonths = [],
         bool $isCurrentMonth = false
     ): \Illuminate\Support\Collection {
-        // Load all chemicals with their category and location
+
         $chemicals = Chemical::with(['category', 'location'])->orderBy('id')->get();
 
-        // ── Load period transactions in ONE aggregated query (BUG-10) ─────────
         $periodAgg = StockTransaction::selectRaw('
                 chemical_id,
                 transaction_type,
@@ -111,7 +93,6 @@ class ReportController extends Controller
             ->get()
             ->groupBy('chemical_id');
 
-        // ── Load each later-month aggregates in ONE query each (BUG-10) ──────
         $laterAggregates = [];
         foreach ($laterMonths as $lm) {
             $agg = StockTransaction::selectRaw('
@@ -131,8 +112,6 @@ class ReportController extends Controller
             $laterAggregates[] = $agg;
         }
 
-        // ── Load period detail transactions for "takes" display ──────────────
-        // (only STOCK_OUT details needed for display in the report table)
         $periodDetails = StockTransaction::with('performer')
             ->whereBetween('transaction_date', [
                 $periodStart->toDateTimeString(),
@@ -148,13 +127,10 @@ class ReportController extends Controller
         ) {
             $cid = $chemical->id;
 
-            // Period IN/OUT
             $periodGroup    = $periodAgg->get($cid, collect());
             $periodIn       = (float) optional($periodGroup->firstWhere('transaction_type', 'STOCK_IN'))->total;
             $periodOut      = (float) optional($periodGroup->firstWhere('transaction_type', 'STOCK_OUT'))->total;
 
-            // Reconstruct saldo_akhir (end-of-period stock)
-            // Logic: currentStock = saldoAkhir + laterOut - laterIn (for all later months)
             if ($isCurrentMonth) {
                 $saldoAkhir = (float) $chemical->current_stock;
             } else {
@@ -216,10 +192,6 @@ class ReportController extends Controller
         return $response;
     }
 
-    /**
-     * Build dynamic report periods: current month + 3 preceding months.
-     * Returns array of 4 period definitions ordered [current, -1, -2, -3].
-     */
     private function getReportPeriods(): array
     {
         $base = Carbon::now()->startOfMonth();
@@ -236,7 +208,6 @@ class ReportController extends Controller
     {
         [$currentPeriod, $lastPeriod, $twoPeriod, $threePeriod] = $this->getReportPeriods();
 
-        // Legacy aliases kept for match expression readability
         $junePeriod  = $currentPeriod;
         $mayPeriod   = $lastPeriod;
         $aprilPeriod = $twoPeriod;

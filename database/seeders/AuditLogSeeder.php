@@ -182,3 +182,4 @@ class AuditLogSeeder extends Seeder
         }
     }
 }
+

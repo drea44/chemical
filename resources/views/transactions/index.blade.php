@@ -9,7 +9,7 @@
 
 @push('styles')
 <style>
-    /* Freeze Pane styles for Log Chemical matrix (Kolom 1-6 Terkunci) */
+
     .table-freeze {
         border-collapse: separate !important;
         border-spacing: 0 !important;
@@ -76,7 +76,6 @@
         box-shadow: 4px 0 8px -2px rgba(0, 0, 0, 0.22);
     }
 
-    /* Header z-index higher than body */
     thead th.sticky-col {
         z-index: 25 !important;
         background-color: #fedac2 !important;
@@ -88,7 +87,6 @@
         overflow: hidden;
     }
 
-    /* Sticky body cell background colors by row type */
     tbody tr:nth-child(odd) td.sticky-col {
         background-color: #ffffff;
     }
@@ -96,18 +94,15 @@
         background-color: #fde8d0;
     }
 
-    /* Row hover effect maintains background on sticky cells */
     tr.matrix-row:hover td.sticky-col {
         background-color: #fef3c7 !important;
     }
 
-    /* Highlighted row */
     .ring-2.ring-yellow-400 td.sticky-col,
     .ring-2.ring-yellow-400.matrix-row td.sticky-col {
         background-color: #fef9c3 !important;
     }
 
-    /* Custom horizontal scrollbar */
     .freeze-scroll-container::-webkit-scrollbar {
         height: 11px;
     }
@@ -128,7 +123,6 @@
 @section('content')
 <div x-data="logChemicalMatrix()" class="space-y-4 font-sans">
 
-    {{-- Top Tab Navigation --}}
     <div class="flex items-center gap-2 border-b border-gray-200 pb-3">
         <a href="{{ route('transactions.master-report') }}" class="inline-flex items-center gap-1.5 px-3 py-1.5 rounded-lg text-sm font-semibold text-gray-600 bg-white border border-gray-200 hover:bg-gray-50 transition-colors">
             <i data-lucide="file-spreadsheet" class="w-4 h-4 text-amber-500"></i>
@@ -144,15 +138,14 @@
         </a>
     </div>
 
-    {{-- Top Header Section --}}
     <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-2">
         <div>
             <h1 class="text-2xl font-bold text-gray-900 tracking-tight">Log Chemical</h1>
             <p class="text-sm text-gray-500 mt-0.5">Chemical inventory & daily usage record - {{ $monthTitle }}</p>
         </div>
-        {{-- Month Navigation --}}
+
         <div class="flex items-center gap-2 self-start sm:self-auto" x-data="monthNav()">
-            {{-- Prev Month --}}
+
             <a href="{{ route('transactions.index', ['month' => $prevMonth]) }}"
                @click.prevent="goToMonth('{{ route('transactions.index', ['month' => $prevMonth]) }}')"
                class="inline-flex items-center gap-1 px-3 py-1.5 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors shadow-xs"
@@ -161,7 +154,6 @@
                 <span class="hidden sm:inline">{{ \Carbon\Carbon::createFromFormat('Y-m', $prevMonth)->format('M Y') }}</span>
             </a>
 
-            {{-- Month Select + Apply Button --}}
             <div class="relative inline-flex items-center gap-1">
                 <div class="relative">
                     <select id="month-select"
@@ -179,7 +171,7 @@
                     </select>
                     <i data-lucide="chevron-down" class="w-4 h-4 text-blue-600 absolute right-2.5 top-1/2 -translate-y-1/2 pointer-events-none"></i>
                 </div>
-                {{-- Apply button — hanya muncul jika bulan berubah --}}
+
                 <button type="button"
                         x-show="selectedMonth !== currentMonth"
                         x-transition:enter="transition ease-out duration-150"
@@ -193,7 +185,6 @@
                 </button>
             </div>
 
-            {{-- Next Month --}}
             <a href="{{ route('transactions.index', ['month' => $nextMonth]) }}"
                @click.prevent="goToMonth('{{ route('transactions.index', ['month' => $nextMonth]) }}')"
                class="inline-flex items-center gap-1 px-3 py-1.5 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors shadow-xs"
@@ -203,7 +194,6 @@
             </a>
             <span class="text-xs text-gray-400 ml-1">{{ now()->format('d M Y, H:i') }}</span>
 
-            {{-- Loading Overlay --}}
             <div x-show="loading" x-cloak
                  class="fixed inset-0 z-[9999] flex flex-col items-center justify-center bg-white/80 backdrop-blur-sm">
                 <div class="flex flex-col items-center gap-3 p-6 bg-white rounded-2xl shadow-xl border border-blue-100">
@@ -218,7 +208,6 @@
         </div>
     </div>
 
-    {{-- Flash Messages --}}
     @if(session('success'))
     <div id="flash-success"
          class="flex items-center gap-2.5 px-4 py-2.5 bg-green-50 border border-green-200 rounded-lg text-sm text-green-800 font-medium shadow-xs"
@@ -241,11 +230,10 @@
     </div>
     @endif
 
-    {{-- Controls Bar --}}
     <div class="flex flex-col lg:flex-row items-stretch lg:items-center justify-between gap-3 pt-1">
-        {{-- Left: Search & Filter --}}
+
         <div class="flex flex-wrap items-center gap-2.5">
-            {{-- Search --}}
+
             <form method="GET" action="{{ route('transactions.index') }}" class="relative min-w-[260px]">
                 <input type="hidden" name="month" value="{{ $periodMonth }}">
                 @if(request('category'))
@@ -257,7 +245,6 @@
                        class="w-full pl-9 pr-3 py-1.5 text-sm bg-white border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent placeholder-gray-400 shadow-xs">
             </form>
 
-            {{-- Filter Button --}}
             <button type="button" @click="showFilterModal = true"
                     class="inline-flex items-center gap-1.5 px-3 py-1.5 bg-white border border-gray-300 rounded-lg text-sm font-medium text-gray-700 hover:bg-gray-50 transition-colors shadow-xs cursor-pointer">
                 <i data-lucide="filter" class="w-3.5 h-3.5 text-gray-500"></i>
@@ -266,7 +253,6 @@
             </button>
         </div>
 
-        {{-- Right: Add Chemical & Add Date --}}
         <div class="flex items-center gap-2 self-end lg:self-auto">
             <button type="button" @click="showAddChemicalModal = true"
                     class="inline-flex items-center gap-1.5 px-3.5 py-1.5 bg-white border border-gray-300 rounded-lg text-sm font-semibold text-gray-800 hover:bg-gray-50 transition-colors shadow-xs cursor-pointer">
@@ -282,7 +268,6 @@
         </div>
     </div>
 
-    {{-- TABEL CHEMICAL LOG PERSIS GAMBAR REFERENSI (FREEZE PANE) --}}
     <div class="space-y-2">
         <div class="flex flex-wrap items-center justify-between text-xs text-gray-600 px-1 gap-2">
             <div class="flex items-center gap-2">
@@ -315,19 +300,19 @@
                 @endphp
                 <table class="text-left table-freeze" style="width: {{ $totalTableWidth }}px; min-width: {{ $totalTableWidth }}px; max-width: {{ $totalTableWidth }}px; font-family: Arial, Helvetica, sans-serif; border-collapse: separate; border-spacing: 0; table-layout: fixed;">
                     <colgroup>
-                        {{-- Kolom 1: No --}}
+
                         <col style="width: 48px; min-width: 48px; max-width: 48px;">
-                        {{-- Kolom 2: Chemical Name --}}
+
                         <col style="width: 290px; min-width: 290px; max-width: 290px;">
-                        {{-- Kolom 3: Saldo Awal Sementara --}}
+
                         <col style="width: 110px; min-width: 110px; max-width: 110px;">
-                        {{-- Kolom 4: Satuan --}}
+
                         <col style="width: 74px; min-width: 74px; max-width: 74px;">
-                        {{-- Kolom 5: Penerimaan --}}
+
                         <col style="width: 90px; min-width: 90px; max-width: 90px;">
-                        {{-- Kolom 6: Pengeluaran --}}
+
                         <col style="width: 90px; min-width: 90px; max-width: 90px;">
-                        {{-- Kolom Tanggal (Take 1, Take 2, Take 3) --}}
+
                         @forelse($logDates as $ld)
                             <col style="width: 55px; min-width: 55px; max-width: 55px;">
                             <col style="width: 55px; min-width: 55px; max-width: 55px;">
@@ -335,13 +320,13 @@
                         @empty
                             <col style="width: 165px; min-width: 165px; max-width: 165px;">
                         @endforelse
-                        {{-- Kolom Saldo Akhir --}}
+
                         <col style="width: 110px; min-width: 110px; max-width: 110px;">
-                        {{-- Kolom Actions --}}
+
                         <col style="width: 110px; min-width: 110px; max-width: 110px;">
                     </colgroup>
                     <thead>
-                        {{-- ROW 1 --}}
+
                         <tr style="background-color: #fedac2;">
                             <th rowspan="5" class="sticky-col sticky-col-no py-2.5 px-2 text-center text-sm font-bold text-gray-900 border border-black align-middle" style="background-color: #fedac2;">
                                 No
@@ -358,12 +343,11 @@
                             <th rowspan="5" class="sticky-col sticky-col-unit py-2.5 px-1 text-center text-sm font-bold text-gray-900 border border-black align-middle" style="background-color: #fedac2;">
                                 Satuan
                             </th>
-                            {{-- JUMLAH Header (Spans Rows 1-3, Colspan 2) --}}
+
                             <th colspan="2" rowspan="3" class="sticky-col sticky-col-jumlah-header py-2 px-3 text-center text-sm font-bold text-gray-900 border border-black align-middle" style="background-color: #fedac2;">
                                 Jumlah
                             </th>
 
-                            {{-- DATE TAKEN HEADERS: Row 1 --}}
                             @forelse($logDates as $ld)
                                 <th colspan="3" class="py-1 px-2 text-center text-xs font-bold text-gray-900 border border-black tracking-wide min-w-[165px] w-[165px]">
                                     Date Taken
@@ -377,19 +361,17 @@
                                 </th>
                             @endforelse
 
-                            {{-- SALDO AKHIR --}}
                             <th rowspan="5" class="py-2.5 px-3 text-center text-sm font-bold text-gray-900 border border-black min-w-[110px] w-[110px] align-middle" title="SALDO AKHIR" style="background-color: #fedac2;">
                                 <div>Saldo Akhir</div>
                                 <div class="text-[10px] font-normal text-gray-600">Awal + Masuk - Keluar</div>
                                 <span class="sr-only">SALDO AKHIR</span>
                             </th>
-                            {{-- ACTIONS --}}
+
                             <th rowspan="5" class="py-2.5 px-2 text-center text-xs font-bold text-gray-900 border border-black min-w-[110px] w-[110px] align-middle" style="background-color: #fedac2;">
                                 Actions
                             </th>
                         </tr>
 
-                        {{-- ROW 2: DATE VALUE (e.g. 01/03/2026) --}}
                         @if($logDates->isNotEmpty())
                         <tr style="background-color: #fedac2;">
                             @foreach($logDates as $ld)
@@ -408,7 +390,6 @@
                             @endforeach
                         </tr>
 
-                        {{-- ROW 3: ANALYST LABEL --}}
                         <tr style="background-color: #fedac2;">
                             @foreach($logDates as $ld)
                                 <th colspan="3" class="py-1 px-2 text-center text-xs font-bold text-gray-900 border border-black tracking-wider">
@@ -418,9 +399,8 @@
                         </tr>
                         @endif
 
-                        {{-- ROW 4: SUB-COLUMNS UNDER JUMLAH (PENERIMAAN & PENGELUARAN) + 3 ANALYST DROPDOWN PILLS --}}
                         <tr style="background-color: #fedac2;">
-                            {{-- Penerimaan & Pengeluaran (under Jumlah, spanning rows 4 & 5) --}}
+
                             <th rowspan="2" class="sticky-col sticky-col-penerimaan py-2 px-2 text-center text-xs font-bold text-gray-900 border border-black align-middle" title="PENERIMAAN" style="background-color: #fedac2;">
                                 <span>Penerimaan</span>
                                 <span class="sr-only">PENERIMAAN</span>
@@ -430,9 +410,8 @@
                                 <span class="sr-only">PENGELUARAN</span>
                             </th>
 
-                            {{-- 3 Analyst Pill Selectors for Date --}}
                             @foreach($logDates as $ld)
-                                {{-- Take 1 Analyst Pill --}}
+
                                 <th class="p-1 text-center border border-black w-18"
                                     x-data="analystTakePill({{ $ld->id }}, 'analyst_take_1', '{{ addslashes($ld->analyst_take_1 ?? '') }}')">
                                     <div class="relative">
@@ -474,7 +453,6 @@
                                     </div>
                                 </th>
 
-                                {{-- Take 2 Analyst Pill --}}
                                 <th class="p-1 text-center border border-black w-18"
                                     x-data="analystTakePill({{ $ld->id }}, 'analyst_take_2', '{{ addslashes($ld->analyst_take_2 ?? '') }}')">
                                     <div class="relative">
@@ -516,7 +494,6 @@
                                     </div>
                                 </th>
 
-                                {{-- Take 3 Analyst Pill --}}
                                 <th class="p-1 text-center border border-black w-18"
                                     x-data="analystTakePill({{ $ld->id }}, 'analyst_take_3', '{{ addslashes($ld->analyst_take_3 ?? '') }}')">
                                     <div class="relative">
@@ -560,7 +537,6 @@
                             @endforeach
                         </tr>
 
-                        {{-- ROW 5: SUB-COLUMNS TAKE 1, TAKE 2, TAKE 3 --}}
                         @if($logDates->isNotEmpty())
                         <tr style="background-color: #fedac2;">
                             @foreach($logDates as $ld)
@@ -594,12 +570,11 @@
                             <tr style="background-color: {{ $cellBg }};"
                                 class="matrix-row hover:bg-amber-50/60 transition-colors {{ request('highlight') == $chem->id ? 'ring-2 ring-yellow-400 ring-inset' : '' }}"
                                 id="row-{{ $chem->id }}">
-                                {{-- NO --}}
+
                                 <td class="sticky-col sticky-col-no py-1.5 px-2 text-center text-sm text-gray-900 border border-black font-normal" style="background-color: {{ $cellBg }};">
                                     {{ ($chemicals->currentPage() - 1) * $chemicals->perPage() + $idx + 1 }}
                                 </td>
 
-                                {{-- CHEMICAL NAME --}}
                                 <td class="sticky-col sticky-col-name py-1.5 px-3 text-left text-sm text-gray-900 border border-black font-normal align-middle" style="background-color: {{ $cellBg }} !important;"
                                     x-data="chemicalNameCell({{ $chem->id }}, '{{ addslashes($chem->chemical_name) }}')"
                                     @dblclick="startEdit()">
@@ -617,7 +592,6 @@
                                     </template>
                                 </td>
 
-                                {{-- SALDO AWAL SEMENTARA (ML/G) --}}
                                 <td class="sticky-col sticky-col-saldo py-1.5 px-2 text-right text-sm text-gray-900 border border-black font-normal" style="background-color: {{ $cellBg }} !important;"
                                     x-data="balanceCell({{ $chem->id }}, '{{ $periodMonth }}', 'saldo_awal', {{ $valSaldo }})"
                                     @dblclick="startEdit()">
@@ -633,7 +607,6 @@
                                     </template>
                                 </td>
 
-                                {{-- SATUAN (Pill badge dropdown) --}}
                                 <td class="sticky-col sticky-col-unit py-1 px-1 text-center align-middle border border-black"
                                     :class="openDropdown ? '!z-40' : ''"
                                     style="background-color: {{ $cellBg }} !important;"
@@ -651,7 +624,6 @@
                                             </svg>
                                         </button>
 
-                                        {{-- Dropdown options --}}
                                         <div x-show="openDropdown" @click.away="openDropdown = false"
                                              class="absolute left-1/2 -translate-x-1/2 top-full mt-1 w-28 bg-white border border-gray-200 rounded-lg shadow-xl z-50 py-1 divide-y divide-gray-100 text-left text-xs"
                                              x-cloak>
@@ -686,7 +658,6 @@
                                     </div>
                                 </td>
 
-                                {{-- JUMLAH: PENERIMAAN (Editable inline) --}}
                                 <td class="sticky-col sticky-col-penerimaan py-1.5 px-2 text-center text-sm text-gray-900 border border-black font-normal" style="background-color: {{ $cellBg }} !important;"
                                     x-data="balanceCell({{ $chem->id }}, '{{ $periodMonth }}', 'penerimaan', {{ $valPenerimaan }})"
                                     @dblclick="startEdit()">
@@ -702,14 +673,12 @@
                                     </template>
                                 </td>
 
-                                {{-- JUMLAH: PENGELUARAN (Shows 0 or usage amount, editable inline) --}}
                                 <td class="sticky-col sticky-col-pengeluaran py-1.5 px-2 text-center text-sm text-gray-900 border border-black font-normal" style="background-color: {{ $cellBg }} !important;">
                                     <span id="pengeluaran-m-{{ $chem->id }}">
                                         {{ $valPengeluaran > 0 ? (floor($valPengeluaran) == $valPengeluaran ? number_format($valPengeluaran, 0, ',', '') : rtrim(rtrim(number_format($valPengeluaran, 4, ',', ''), '0'), ',')) : '0' }}
                                     </span>
                                 </td>
 
-                                {{-- DATE TAKEN: TAKE 1, TAKE 2, TAKE 3 --}}
                                 @foreach($logDates as $ld)
                                     @php
                                         $usage = $row['usages'][$ld->id] ?? ['take_1' => null, 'take_2' => null, 'take_3' => null];
@@ -718,7 +687,6 @@
                                         $t3 = $usage['take_3'];
                                     @endphp
 
-                                    {{-- Take 1 --}}
                                     <td class="py-1.5 px-1 text-center text-sm text-gray-900 border border-black font-normal min-w-[55px] w-[55px]"
                                         x-data="usageCell({{ $chem->id }}, {{ $ld->id }}, 'take_1', {{ $t1 !== null ? $t1 : 'null' }})"
                                         @dblclick="startEdit()">
@@ -734,7 +702,6 @@
                                         </template>
                                     </td>
 
-                                    {{-- Take 2 --}}
                                     <td class="py-1.5 px-1 text-center text-sm text-gray-900 border border-black font-normal min-w-[55px] w-[55px]"
                                         x-data="usageCell({{ $chem->id }}, {{ $ld->id }}, 'take_2', {{ $t2 !== null ? $t2 : 'null' }})"
                                         @dblclick="startEdit()">
@@ -750,7 +717,6 @@
                                         </template>
                                     </td>
 
-                                    {{-- Take 3 --}}
                                     <td class="py-1.5 px-1 text-center text-sm text-gray-900 border border-black font-normal min-w-[55px] w-[55px]"
                                         x-data="usageCell({{ $chem->id }}, {{ $ld->id }}, 'take_3', {{ $t3 !== null ? $t3 : 'null' }})"
                                         @dblclick="startEdit()">
@@ -767,14 +733,12 @@
                                     </td>
                                 @endforeach
 
-                                {{-- SALDO AKHIR --}}
                                 <td class="py-1.5 px-3 text-right text-sm font-bold text-gray-900 border border-black min-w-[110px] w-[110px]">
                                     <span id="saldo-akhir-m-{{ $chem->id }}">
                                         {{ floor($valSaldoAkhir) == $valSaldoAkhir ? number_format($valSaldoAkhir, 0, ',', '') : rtrim(rtrim(number_format($valSaldoAkhir, 4, ',', ''), '0'), ',') }}
                                     </span>
                                 </td>
 
-                                {{-- ACTIONS --}}
                                 <td class="py-1.5 px-2 text-center border border-black min-w-[110px] w-[110px]" style="background-color: {{ $cellBg }};">
                                     <div class="flex flex-col items-center gap-1">
                                         <button type="button"
@@ -809,14 +773,13 @@
             </div>
         </div>
 
-        {{-- Table Footer Info --}}
         <div class="flex flex-col sm:flex-row items-center justify-between gap-2 px-1 pt-1 text-xs text-gray-500">
             <div class="flex items-center gap-1.5">
                 <i data-lucide="edit-3" class="w-3.5 h-3.5 text-gray-400"></i>
                 <span>Klik dua kali pada cell (nama, saldo awal, penerimaan) untuk edit langsung. Satuan dapat diganti via dropdown pill.</span>
             </div>
             <div class="flex flex-wrap items-center gap-3">
-                {{-- Per-page control --}}
+
                 <div class="flex items-center gap-1.5">
                     <span class="text-gray-400">Tampilkan:</span>
                     @foreach([50, 100, 250] as $pp)
@@ -841,7 +804,6 @@
         </div>
     </div>
 
-    {{-- MODAL 1: ADD DATE --}}
     <div x-show="showAddDateModal"
          class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs"
          x-cloak>
@@ -881,7 +843,6 @@
         </div>
     </div>
 
-    {{-- MODAL 2: ADD CHEMICAL QUICKLY TO LOG --}}
     <div x-show="showAddChemicalModal"
          class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs"
          x-cloak>
@@ -949,7 +910,6 @@
         </div>
     </div>
 
-    {{-- MODAL 3: FILTER --}}
     <div x-show="showFilterModal"
          class="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/50 backdrop-blur-xs"
          x-cloak>
@@ -1008,7 +968,6 @@
         </div>
     </div>
 
-    {{-- ═══════════════ MODAL EDIT BARIS ═══════════════ --}}
     <div class="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
          x-show="showRowEditModal" x-cloak
          x-transition:enter="transition ease-out duration-200"
@@ -1070,7 +1029,6 @@
         </div>
     </div>
 
-    {{-- ═══════════════ MODAL KONFIRMASI HAPUS BARIS ═══════════════ --}}
     <div class="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
          x-show="showRowDeleteModal" x-cloak
          x-transition:enter="transition ease-out duration-150"
@@ -1110,17 +1068,14 @@
 <script>
 function logChemicalMatrix() {
     return {
-        // existing modal state
         showAddDateModal: false,
         showAddChemicalModal: false,
         showFilterModal: false,
 
-        // ── Row edit modal ──
         showRowEditModal: false,
         rowSaving: false,
         rowEdit: { id: null, name: '', unit: '', saldo_awal: 0, penerimaan: 0, period_month: '' },
 
-        // ── Row delete modal ──
         showRowDeleteModal: false,
         rowDeleting: false,
         rowDeleteTarget: { id: null, name: '' },
@@ -1151,25 +1106,21 @@ function logChemicalMatrix() {
                 const cleanSaldo = String(this.rowEdit.saldo_awal || '').replace(',', '.').trim();
                 const cleanPenerimaan = String(this.rowEdit.penerimaan || '').replace(',', '.').trim();
 
-                // chemical name
                 await fetch(base + '/update-chemical', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrf },
                     body: JSON.stringify({ chemical_id: this.rowEdit.id, field: 'chemical_name', value: this.rowEdit.name })
                 });
-                // unit
                 await fetch(base + '/update-chemical', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrf },
                     body: JSON.stringify({ chemical_id: this.rowEdit.id, field: 'unit', value: this.rowEdit.unit })
                 });
-                // saldo_awal
                 await fetch(base + '/update-balance', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrf },
                     body: JSON.stringify({ chemical_id: this.rowEdit.id, period_month: this.rowEdit.period_month, field: 'saldo_awal', value: cleanSaldo })
                 });
-                // penerimaan
                 const res = await fetch(base + '/update-balance', {
                     method: 'POST',
                     headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrf },
@@ -1177,14 +1128,12 @@ function logChemicalMatrix() {
                 });
                 const data = await res.json();
 
-                // Update saldo-akhir display
                 const saldoEl = document.getElementById('saldo-akhir-m-' + this.rowEdit.id);
                 if (saldoEl && data.saldo_akhir !== undefined) saldoEl.textContent = data.saldo_akhir;
 
                 this.showRowEditModal = false;
                 sessionStorage.setItem('idx_keep_row', this.rowEdit.id);
                 sessionStorage.setItem('idx_scroll_y', window.scrollY);
-                // Reload to reflect name/unit changes
                 window.location.reload();
             } catch(e) {
                 alert('Gagal menyimpan. Silakan coba lagi.');
@@ -1229,13 +1178,11 @@ function monthNav() {
         loading: false,
         goToMonth(url) {
             this.loading = true;
-            // Beri sedikit delay agar overlay tampil sebelum navigate
             setTimeout(() => { window.location.href = url; }, 80);
         }
     }
 }
 
-// Unit Pill component with dropdown
 function unitPillSelector(chemicalId, initialUnit) {
     return {
         chemicalId: chemicalId,
@@ -1283,7 +1230,6 @@ function unitPillSelector(chemicalId, initialUnit) {
     }
 }
 
-// Cell component for Chemical Name
 function chemicalNameCell(chemicalId, initialName) {
     return {
         chemicalId: chemicalId,
@@ -1324,7 +1270,6 @@ function chemicalNameCell(chemicalId, initialName) {
     }
 }
 
-// Cell component for Analyst Take Pill Dropdown
 function analystTakePill(logDateId, takeField, initialName) {
     return {
         logDateId: logDateId,
@@ -1373,7 +1318,6 @@ function analystTakePill(logDateId, takeField, initialName) {
     }
 }
 
-// Cell component for Daily Takes (Take 1, Take 2, Take 3)
 function usageCell(chemicalId, logDateId, field, initialVal) {
     return {
         chemicalId: chemicalId,
@@ -1431,7 +1375,6 @@ function usageCell(chemicalId, logDateId, field, initialVal) {
     }
 }
 
-// Cell component for Saldo Awal and Penerimaan
 function balanceCell(chemicalId, periodMonth, field, initialVal) {
     return {
         chemicalId: chemicalId,
@@ -1524,3 +1467,4 @@ document.addEventListener('DOMContentLoaded', function () {
 });
 </script>
 @endpush
+

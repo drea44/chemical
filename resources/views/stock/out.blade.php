@@ -24,11 +24,9 @@
 
     <div class="grid grid-cols-1 lg:grid-cols-3 gap-5">
 
-        {{-- LEFT: Form --}}
         <div class="lg:col-span-2">
             <div class="bg-white border border-gray-200 rounded-lg p-6">
 
-                {{-- Chemical + Batch --}}
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                     <div>
                         <label for="chemical_id" class="block text-sm font-medium text-gray-700 mb-1">
@@ -60,7 +58,6 @@
                     </div>
                 </div>
 
-                {{-- Quantity + Unit + Purpose --}}
                 <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-4">
                     <div>
                         <label for="quantity" class="block text-sm font-medium text-gray-700 mb-1">
@@ -106,7 +103,6 @@
                     </div>
                 </div>
 
-                {{-- Authorized User + Removal Timestamp --}}
                 <div class="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
                     <div>
                         <label class="block text-sm font-medium text-gray-700 mb-1">Authorized User</label>
@@ -129,7 +125,6 @@
                     </div>
                 </div>
 
-                {{-- Operational Notes --}}
                 <div class="mb-6">
                     <label for="notes" class="block text-sm font-medium text-gray-700 mb-1">Operational & Safety Notes</label>
                     <textarea id="notes" name="notes" rows="3"
@@ -137,7 +132,6 @@
                               class="block w-full rounded border border-gray-300 px-3 py-2 text-sm focus:border-blue-500 focus:outline-none focus:ring-1 focus:ring-blue-500">{{ old('notes') }}</textarea>
                 </div>
 
-                {{-- Actions --}}
                 <div class="flex items-center justify-end gap-3">
                     <a href="{{ route('stock.out') }}"
                        class="px-5 py-2 border border-gray-300 text-gray-600 text-sm font-medium rounded hover:bg-gray-50 transition-colors">
@@ -152,10 +146,8 @@
             </div>
         </div>
 
-        {{-- RIGHT: Removal Summary --}}
         <div class="lg:col-span-1 space-y-4">
 
-            {{-- Summary Card --}}
             <div class="bg-white border border-gray-200 rounded-lg p-5">
                 <h2 class="text-sm font-semibold text-gray-800 mb-4">Removal Summary</h2>
                 <div class="space-y-3">
@@ -197,7 +189,6 @@
                 </div>
             </div>
 
-            {{-- Regulatory Notice --}}
             <div x-show="selectedChemical" class="bg-red-50 border border-red-200 rounded-lg p-4">
                 <div class="flex items-start gap-2">
                     <i data-lucide="alert-triangle" class="w-4 h-4 text-red-500 flex-shrink-0 mt-0.5"></i>
@@ -212,7 +203,6 @@
                 </div>
             </div>
 
-            {{-- Insufficient Warning --}}
             <div x-show="selectedChemical && afterStockRaw() < 0"
                  class="bg-red-50 border border-red-300 rounded-lg p-4">
                 <div class="flex items-center gap-2">
@@ -254,3 +244,4 @@ function stockOutForm() {
 }
 </script>
 @endpush
+

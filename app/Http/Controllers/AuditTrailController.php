@@ -10,9 +10,8 @@ class AuditTrailController extends Controller
 {
     public function index(Request $request)
     {
-        // BUG-07: Use AuditLogPolicy instead of manual role check
-        $this->authorize('viewAny', AuditLog::class);
 
+        $this->authorize('viewAny', AuditLog::class);
 
         $query = AuditLog::with('user');
 
@@ -53,3 +52,4 @@ class AuditTrailController extends Controller
         return view('audit-trail.index', compact('logs', 'users', 'actions', 'modules'));
     }
 }
+
