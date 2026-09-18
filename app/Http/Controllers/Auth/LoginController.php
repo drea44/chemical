@@ -60,7 +60,8 @@ class LoginController extends Controller
         }
 
         RateLimiter::hit($key);
-        AuditLogService::log('login', 'Auth', 'User', null, null, ['email' => $request->email], 'failed');
+        // Log failed attempt without storing the submitted email (privacy & data minimization)
+        AuditLogService::log('login', 'Auth', 'User', null, null, ['attempt' => 'failed'], 'failed');
 
         throw ValidationException::withMessages([
             'email' => trans('auth.failed'),

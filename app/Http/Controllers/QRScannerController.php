@@ -19,31 +19,22 @@ class QRScannerController extends Controller
         ]);
 
         $rawCode = trim($request->input('code'));
-        $code = $rawCode;
+        $code    = $rawCode;
 
         $chemical = null;
 
-        // Support URL like http://.../chemicals/12
-        if (preg_match('/chemicals\/(\d+)/', $code, $matches)) {
-            $chemical = Chemical::with(['category', 'location'])->find($matches[1]);
-        }
+        // Support CHEM:-prefixed QR codes (primary format)
+        $chemicalCode = str_starts_with($code, 'CHEM:')
+            ? substr($code, 5)
+            : $code;
 
-        if (!$chemical) {
-            // Support both raw code and CHEM: prefixed code
-            $chemicalCode = str_starts_with($code, 'CHEM:')
-                ? substr($code, 5)
-                : $code;
+        $chemical = Chemical::where('chemical_code', $chemicalCode)
+            ->orWhere('batch_number', $chemicalCode)
+            ->with(['category', 'location'])
+            ->first();
 
-            $chemical = Chemical::where('chemical_code', $chemicalCode)
-                ->orWhere('batch_number', $chemicalCode)
-                ->orWhere('qr_code', 'like', "%{$rawCode}%")
-                ->with(['category', 'location'])
-                ->first();
-        }
-
-        if (!$chemical && is_numeric($code)) {
-            $chemical = Chemical::with(['category', 'location'])->find($code);
-        }
+        // NOTE: Intentionally NOT supporting raw numeric ID lookup to prevent IDOR enumeration.
+        // Also removed URL-pattern matching — QR codes should only contain CHEM: or chemical_code values.
 
         if (!$chemical) {
             return response()->json([

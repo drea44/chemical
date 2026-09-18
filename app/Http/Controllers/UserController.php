@@ -65,6 +65,10 @@ class UserController extends Controller
 
     public function update(UpdateUserRequest $request, User $user)
     {
+        if ($user->id === auth()->id() && $request->role !== $user->role) {
+            return back()->with('error', 'Anda tidak dapat mengubah peran (role) akun Anda sendiri.');
+        }
+
         $old = $user->only(['name', 'role', 'status', 'department']);
         $user->update($request->validated());
         AuditLogService::logUpdated('User', $user->id, $old, $request->validated());
@@ -74,6 +78,10 @@ class UserController extends Controller
     public function deactivate(User $user)
     {
         $this->authorize('update', $user);
+
+        if ($user->id === auth()->id()) {
+            return back()->with('error', 'Anda tidak dapat menonaktifkan akun Anda sendiri.');
+        }
 
         // BUG-09: Determine action BEFORE updating to avoid inverted message
         $newStatus = $user->status === 'active' ? 'inactive' : 'active';
@@ -87,6 +95,11 @@ class UserController extends Controller
     public function resetPassword(User $user)
     {
         $this->authorize('update', $user);
+
+        if ($user->id === auth()->id()) {
+            return back()->with('error', 'Anda tidak dapat mereset akun Anda sendiri dari menu ini.');
+        }
+
         $tempPassword = Str::random(12);
         $user->update(['password' => Hash::make($tempPassword)]);
         AuditLogService::log('updated', 'User', 'User', $user->id, null, ['action' => 'password_reset']);

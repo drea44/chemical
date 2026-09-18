@@ -32,19 +32,16 @@ class ReportController extends Controller
         $inventorySummary = Chemical::with(['category', 'location'])
             ->orderBy('id')->get();
 
-        // ── Monitoring periods (June, May, April, March 2026) ────────────────
-        $junePeriod  = ['start' => Carbon::parse('2026-06-01 00:00:00'), 'end' => Carbon::parse('2026-06-30 23:59:59')];
-        $mayPeriod   = ['start' => Carbon::parse('2026-05-01 00:00:00'), 'end' => Carbon::parse('2026-05-31 23:59:59')];
-        $aprilPeriod = ['start' => Carbon::parse('2026-04-01 00:00:00'), 'end' => Carbon::parse('2026-04-30 23:59:59')];
-        $marchPeriod = ['start' => Carbon::parse('2026-03-01 00:00:00'), 'end' => Carbon::parse('2026-03-31 23:59:59')];
+        // ── Monitoring periods — dynamic: last 4 complete months ─────────────
+        [$currentPeriod, $lastPeriod, $twoPeriod, $threePeriod] = $this->getReportPeriods();
 
         // ── Monitoring reports (BUG-10 fix: single aggregate per month) ──────
-        $monitoringReportJune   = $this->buildMonitoringReport($junePeriod['start'],  $junePeriod['end'],  [], true);
-        $monitoringReportMay    = $this->buildMonitoringReport($mayPeriod['start'],   $mayPeriod['end'],   [$junePeriod]);
-        $monitoringReportApril  = $this->buildMonitoringReport($aprilPeriod['start'], $aprilPeriod['end'], [$junePeriod, $mayPeriod]);
-        $monitoringReportMarch  = $this->buildMonitoringReport($marchPeriod['start'], $marchPeriod['end'], [$junePeriod, $mayPeriod, $aprilPeriod]);
+        $monitoringReportJune   = $this->buildMonitoringReport($currentPeriod['start'], $currentPeriod['end'], [], true);
+        $monitoringReportMay    = $this->buildMonitoringReport($lastPeriod['start'],   $lastPeriod['end'],   [$currentPeriod]);
+        $monitoringReportApril  = $this->buildMonitoringReport($twoPeriod['start'],    $twoPeriod['end'],    [$currentPeriod, $lastPeriod]);
+        $monitoringReportMarch  = $this->buildMonitoringReport($threePeriod['start'],  $threePeriod['end'],  [$currentPeriod, $lastPeriod, $twoPeriod]);
 
-        // Aliases for forward-compatibility
+        // Aliases for view compatibility
         $monitoringReportCurrent = $monitoringReportJune;
         $monitoringReportLast    = $monitoringReportMay;
         $monitoringReportTwo     = $monitoringReportApril;
@@ -219,12 +216,31 @@ class ReportController extends Controller
         return $response;
     }
 
+    /**
+     * Build dynamic report periods: current month + 3 preceding months.
+     * Returns array of 4 period definitions ordered [current, -1, -2, -3].
+     */
+    private function getReportPeriods(): array
+    {
+        $base = Carbon::now()->startOfMonth();
+        $periods = [];
+        for ($i = 0; $i < 4; $i++) {
+            $start = $base->copy()->subMonths($i)->startOfMonth();
+            $end   = $base->copy()->subMonths($i)->endOfMonth()->endOfDay();
+            $periods[] = ['start' => $start, 'end' => $end];
+        }
+        return $periods;
+    }
+
     private function getExportData(string $type): array
     {
-        $junePeriod  = ['start' => Carbon::parse('2026-06-01 00:00:00'), 'end' => Carbon::parse('2026-06-30 23:59:59')];
-        $mayPeriod   = ['start' => Carbon::parse('2026-05-01 00:00:00'), 'end' => Carbon::parse('2026-05-31 23:59:59')];
-        $aprilPeriod = ['start' => Carbon::parse('2026-04-01 00:00:00'), 'end' => Carbon::parse('2026-04-30 23:59:59')];
-        $marchPeriod = ['start' => Carbon::parse('2026-03-01 00:00:00'), 'end' => Carbon::parse('2026-03-31 23:59:59')];
+        [$currentPeriod, $lastPeriod, $twoPeriod, $threePeriod] = $this->getReportPeriods();
+
+        // Legacy aliases kept for match expression readability
+        $junePeriod  = $currentPeriod;
+        $mayPeriod   = $lastPeriod;
+        $aprilPeriod = $twoPeriod;
+        $marchPeriod = $threePeriod;
 
         return match($type) {
             'inventory' => Chemical::with(['category', 'location'])->get()->map(fn($c) => [

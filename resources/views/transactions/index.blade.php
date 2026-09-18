@@ -13,6 +13,7 @@
     .table-freeze {
         border-collapse: separate !important;
         border-spacing: 0 !important;
+        table-layout: fixed !important;
     }
 
     .sticky-col-no {
@@ -26,14 +27,14 @@
     .sticky-col-name {
         position: sticky !important;
         left: 48px !important;
-        width: 260px !important;
-        min-width: 260px !important;
-        max-width: 260px !important;
+        width: 290px !important;
+        min-width: 290px !important;
+        max-width: 290px !important;
     }
 
     .sticky-col-saldo {
         position: sticky !important;
-        left: 308px !important;
+        left: 338px !important;
         width: 110px !important;
         min-width: 110px !important;
         max-width: 110px !important;
@@ -41,24 +42,25 @@
 
     .sticky-col-unit {
         position: sticky !important;
-        left: 418px !important;
-        width: 68px !important;
-        min-width: 68px !important;
-        max-width: 68px !important;
+        left: 448px !important;
+        width: 74px !important;
+        min-width: 74px !important;
+        max-width: 74px !important;
     }
 
     .sticky-col-jumlah-header {
         position: sticky !important;
-        left: 486px !important;
+        left: 522px !important;
         width: 180px !important;
         min-width: 180px !important;
         max-width: 180px !important;
-        border-right: 2.5px solid #000000 !important;
+        border-right: 3px solid #000000 !important;
+        box-shadow: 4px 0 8px -2px rgba(0, 0, 0, 0.22);
     }
 
     .sticky-col-penerimaan {
         position: sticky !important;
-        left: 486px !important;
+        left: 522px !important;
         width: 90px !important;
         min-width: 90px !important;
         max-width: 90px !important;
@@ -66,11 +68,11 @@
 
     .sticky-col-pengeluaran {
         position: sticky !important;
-        left: 576px !important;
+        left: 612px !important;
         width: 90px !important;
         min-width: 90px !important;
         max-width: 90px !important;
-        border-right: 2.5px solid #000000 !important;
+        border-right: 3px solid #000000 !important;
         box-shadow: 4px 0 8px -2px rgba(0, 0, 0, 0.22);
     }
 
@@ -82,11 +84,27 @@
 
     tbody td.sticky-col {
         z-index: 10 !important;
+        background-clip: padding-box;
+        overflow: hidden;
+    }
+
+    /* Sticky body cell background colors by row type */
+    tbody tr:nth-child(odd) td.sticky-col {
+        background-color: #ffffff;
+    }
+    tbody tr:nth-child(even) td.sticky-col {
+        background-color: #fde8d0;
     }
 
     /* Row hover effect maintains background on sticky cells */
     tr.matrix-row:hover td.sticky-col {
         background-color: #fef3c7 !important;
+    }
+
+    /* Highlighted row */
+    .ring-2.ring-yellow-400 td.sticky-col,
+    .ring-2.ring-yellow-400.matrix-row td.sticky-col {
+        background-color: #fef9c3 !important;
     }
 
     /* Custom horizontal scrollbar */
@@ -282,7 +300,7 @@
                     <i data-lucide="chevrons-left" class="w-3.5 h-3.5"></i> Ke Tanggal 1
                 </button>
                 <button type="button"
-                        onclick="document.getElementById('matrix-scroll-wrapper').scrollTo({ left: document.getElementById('matrix-scroll-wrapper').scrollWidth, behavior: 'smooth' })"
+                        onclick="const el = document.getElementById('matrix-scroll-wrapper'); el.scrollTo({ left: el.scrollWidth - el.clientWidth, behavior: 'smooth' })"
                         class="px-2.5 py-1 bg-white border border-gray-300 hover:bg-gray-50 rounded text-xs font-semibold text-gray-700 shadow-2xs cursor-pointer inline-flex items-center gap-1 transition-colors">
                     Ke Saldo Akhir <i data-lucide="chevrons-right" class="w-3.5 h-3.5"></i>
                 </button>
@@ -291,7 +309,37 @@
 
         <div class="border border-black overflow-hidden shadow-sm bg-white">
             <div id="matrix-scroll-wrapper" class="overflow-x-auto freeze-scroll-container">
-                <table class="w-full text-left table-freeze" style="font-family: Arial, Helvetica, sans-serif; border-collapse: separate; border-spacing: 0;">
+                @php
+                    $numDates = max($logDates->count(), 1);
+                    $totalTableWidth = 702 + ($numDates * 165) + 110 + 110;
+                @endphp
+                <table class="text-left table-freeze" style="width: {{ $totalTableWidth }}px; min-width: {{ $totalTableWidth }}px; max-width: {{ $totalTableWidth }}px; font-family: Arial, Helvetica, sans-serif; border-collapse: separate; border-spacing: 0; table-layout: fixed;">
+                    <colgroup>
+                        {{-- Kolom 1: No --}}
+                        <col style="width: 48px; min-width: 48px; max-width: 48px;">
+                        {{-- Kolom 2: Chemical Name --}}
+                        <col style="width: 290px; min-width: 290px; max-width: 290px;">
+                        {{-- Kolom 3: Saldo Awal Sementara --}}
+                        <col style="width: 110px; min-width: 110px; max-width: 110px;">
+                        {{-- Kolom 4: Satuan --}}
+                        <col style="width: 74px; min-width: 74px; max-width: 74px;">
+                        {{-- Kolom 5: Penerimaan --}}
+                        <col style="width: 90px; min-width: 90px; max-width: 90px;">
+                        {{-- Kolom 6: Pengeluaran --}}
+                        <col style="width: 90px; min-width: 90px; max-width: 90px;">
+                        {{-- Kolom Tanggal (Take 1, Take 2, Take 3) --}}
+                        @forelse($logDates as $ld)
+                            <col style="width: 55px; min-width: 55px; max-width: 55px;">
+                            <col style="width: 55px; min-width: 55px; max-width: 55px;">
+                            <col style="width: 55px; min-width: 55px; max-width: 55px;">
+                        @empty
+                            <col style="width: 165px; min-width: 165px; max-width: 165px;">
+                        @endforelse
+                        {{-- Kolom Saldo Akhir --}}
+                        <col style="width: 110px; min-width: 110px; max-width: 110px;">
+                        {{-- Kolom Actions --}}
+                        <col style="width: 110px; min-width: 110px; max-width: 110px;">
+                    </colgroup>
                     <thead>
                         {{-- ROW 1 --}}
                         <tr style="background-color: #fedac2;">
@@ -307,8 +355,8 @@
                                 <div class="text-xs font-semibold text-gray-700">(ml/g)</div>
                                 <span class="sr-only">SALDO AWAL</span>
                             </th>
-                            <th rowspan="5" class="sticky-col sticky-col-unit py-2.5 px-2 text-center text-sm font-bold text-gray-900 border border-black align-middle" style="background-color: #fedac2;">
-                                Unit
+                            <th rowspan="5" class="sticky-col sticky-col-unit py-2.5 px-1 text-center text-sm font-bold text-gray-900 border border-black align-middle" style="background-color: #fedac2;">
+                                Satuan
                             </th>
                             {{-- JUMLAH Header (Spans Rows 1-3, Colspan 2) --}}
                             <th colspan="2" rowspan="3" class="sticky-col sticky-col-jumlah-header py-2 px-3 text-center text-sm font-bold text-gray-900 border border-black align-middle" style="background-color: #fedac2;">
@@ -334,6 +382,10 @@
                                 <div>Saldo Akhir</div>
                                 <div class="text-[10px] font-normal text-gray-600">Awal + Masuk - Keluar</div>
                                 <span class="sr-only">SALDO AKHIR</span>
+                            </th>
+                            {{-- ACTIONS --}}
+                            <th rowspan="5" class="py-2.5 px-2 text-center text-xs font-bold text-gray-900 border border-black min-w-[110px] w-[110px] align-middle" style="background-color: #fedac2;">
+                                Actions
                             </th>
                         </tr>
 
@@ -548,83 +600,112 @@
                                 </td>
 
                                 {{-- CHEMICAL NAME --}}
-                                <td class="sticky-col sticky-col-name py-1.5 px-3 text-left text-sm text-gray-900 border border-black font-normal" style="background-color: {{ $cellBg }};"
+                                <td class="sticky-col sticky-col-name py-1.5 px-3 text-left text-sm text-gray-900 border border-black font-normal align-middle" style="background-color: {{ $cellBg }} !important;"
                                     x-data="chemicalNameCell({{ $chem->id }}, '{{ addslashes($chem->chemical_name) }}')"
                                     @dblclick="startEdit()">
                                     <template x-if="!editing">
-                                        <div class="cursor-pointer truncate hover:text-blue-700" title="Klik 2x untuk edit nama">
+                                        <div class="cursor-pointer hover:text-blue-700 whitespace-normal leading-snug py-0.5"
+                                             style="word-break: break-word; overflow-wrap: anywhere;"
+                                             title="{{ $chem->chemical_name }} (Klik 2x untuk edit)">
                                             <span x-text="name">{{ $chem->chemical_name }}</span>
                                         </div>
                                     </template>
                                     <template x-if="editing">
                                         <input type="text" x-model="name" x-ref="chemNameInput"
                                                @blur="saveEdit()" @keydown.enter="saveEdit()" @keydown.escape="editing = false"
-                                               class="w-full text-sm px-1 py-0.5 border border-blue-600 bg-white rounded focus:outline-none">
+                                               class="w-full text-sm px-1.5 py-0.5 border border-blue-600 bg-white rounded focus:outline-none">
                                     </template>
                                 </td>
 
                                 {{-- SALDO AWAL SEMENTARA (ML/G) --}}
-                                <td class="sticky-col sticky-col-saldo py-1.5 px-2 text-right text-sm text-gray-900 border border-black font-normal" style="background-color: {{ $cellBg }};"
+                                <td class="sticky-col sticky-col-saldo py-1.5 px-2 text-right text-sm text-gray-900 border border-black font-normal" style="background-color: {{ $cellBg }} !important;"
                                     x-data="balanceCell({{ $chem->id }}, '{{ $periodMonth }}', 'saldo_awal', {{ $valSaldo }})"
                                     @dblclick="startEdit()">
                                     <template x-if="!editing">
                                         <div class="cursor-pointer hover:bg-amber-100/70 px-1 py-0.5 rounded text-right min-h-[22px]" title="Klik 2x untuk edit saldo awal">
-                                            <span x-text="val > 0 ? (val % 1 === 0 ? val.toLocaleString('id-ID') : val.toString().replace('.', ',')) : ''"></span>
+                                            <span x-text="val > 0 ? (val % 1 === 0 ? val.toString() : val.toString().replace('.', ',')) : ''"></span>
                                         </div>
                                     </template>
                                     <template x-if="editing">
-                                        <input type="number" step="any" x-model="val" x-ref="inputEl"
+                                        <input type="text" inputmode="decimal" x-model="val" x-ref="inputEl"
                                                @blur="saveEdit()" @keydown.enter="saveEdit()" @keydown.escape="editing = false"
                                                class="w-24 text-right text-sm px-1 py-0.5 border border-blue-600 bg-white rounded focus:outline-none">
                                     </template>
                                 </td>
 
-                                {{-- UNIT (Pill badge dropdown) --}}
-                                <td class="sticky-col sticky-col-unit py-1 px-2 text-center border border-black" style="background-color: {{ $cellBg }};"
+                                {{-- SATUAN (Pill badge dropdown) --}}
+                                <td class="sticky-col sticky-col-unit py-1 px-1 text-center align-middle border border-black"
+                                    :class="openDropdown ? '!z-40' : ''"
+                                    style="background-color: {{ $cellBg }} !important;"
                                     x-data="unitPillSelector({{ $chem->id }}, '{{ strtolower(trim($chem->unit ?? '')) }}')">
-                                    <div class="relative inline-block text-left">
+                                    <div class="relative flex items-center justify-center">
                                         <button type="button" @click="openDropdown = !openDropdown"
                                                 :class="unitClass(unit)"
-                                                class="inline-flex items-center justify-between gap-1.5 px-2.5 py-0.5 text-xs font-semibold rounded-md border shadow-2xs transition-all cursor-pointer w-16">
-                                            <span x-text="unit ? unit : '-'"></span>
-                                            <svg class="w-3 h-3 text-gray-600" fill="none" stroke="currentColor" viewBox="0 0 24 24">
-                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M19 9l-7 7-7-7"/>
+                                                class="inline-flex items-center justify-center gap-1 w-[52px] h-[22px] text-[11px] font-bold rounded-md border shadow-2xs transition-all cursor-pointer select-none"
+                                                title="Klik untuk ubah satuan">
+                                            <span x-text="unit ? unit : '-'" class="truncate"></span>
+                                            <svg class="w-2.5 h-2.5 opacity-70 flex-shrink-0 transition-transform duration-150"
+                                                 :class="openDropdown ? 'rotate-180' : ''"
+                                                 fill="none" stroke="currentColor" viewBox="0 0 24 24">
+                                                <path stroke-linecap="round" stroke-linejoin="round" stroke-width="2.5" d="M19 9l-7 7-7-7"/>
                                             </svg>
                                         </button>
 
                                         {{-- Dropdown options --}}
                                         <div x-show="openDropdown" @click.away="openDropdown = false"
-                                             class="absolute left-0 mt-1 w-20 bg-white border border-gray-300 rounded shadow-lg z-40 py-1 text-left"
+                                             class="absolute left-1/2 -translate-x-1/2 top-full mt-1 w-28 bg-white border border-gray-200 rounded-lg shadow-xl z-50 py-1 divide-y divide-gray-100 text-left text-xs"
                                              x-cloak>
-                                            <button type="button" @click="selectUnit('g')" class="w-full text-left px-3 py-1 text-xs hover:bg-yellow-100 text-yellow-900 font-semibold">g</button>
-                                            <button type="button" @click="selectUnit('ml')" class="w-full text-left px-3 py-1 text-xs hover:bg-orange-100 text-orange-900 font-semibold">ml</button>
-                                            <button type="button" @click="selectUnit('L')" class="w-full text-left px-3 py-1 text-xs hover:bg-blue-100 text-blue-900 font-semibold">L</button>
-                                            <button type="button" @click="selectUnit('kg')" class="w-full text-left px-3 py-1 text-xs hover:bg-green-100 text-green-900 font-semibold">kg</button>
-                                            <button type="button" @click="selectUnit('')" class="w-full text-left px-3 py-1 text-xs hover:bg-gray-100 text-gray-500 italic">(kosong)</button>
+                                            <div class="py-0.5">
+                                                <button type="button" @click="selectUnit('g')" class="w-full flex items-center justify-between px-2.5 py-1 text-xs hover:bg-amber-50 text-gray-700 hover:text-amber-900 transition-colors">
+                                                    <span class="font-semibold text-amber-700">g</span>
+                                                    <span class="text-[10px] text-gray-400">gram</span>
+                                                </button>
+                                                <button type="button" @click="selectUnit('ml')" class="w-full flex items-center justify-between px-2.5 py-1 text-xs hover:bg-orange-50 text-gray-700 hover:text-orange-900 transition-colors">
+                                                    <span class="font-semibold text-orange-700">ml</span>
+                                                    <span class="text-[10px] text-gray-400">mililiter</span>
+                                                </button>
+                                                <button type="button" @click="selectUnit('L')" class="w-full flex items-center justify-between px-2.5 py-1 text-xs hover:bg-blue-50 text-gray-700 hover:text-blue-900 transition-colors">
+                                                    <span class="font-semibold text-blue-700">L</span>
+                                                    <span class="text-[10px] text-gray-400">liter</span>
+                                                </button>
+                                                <button type="button" @click="selectUnit('kg')" class="w-full flex items-center justify-between px-2.5 py-1 text-xs hover:bg-emerald-50 text-gray-700 hover:text-emerald-900 transition-colors">
+                                                    <span class="font-semibold text-emerald-700">kg</span>
+                                                    <span class="text-[10px] text-gray-400">kilogram</span>
+                                                </button>
+                                                <button type="button" @click="selectUnit('pcs')" class="w-full flex items-center justify-between px-2.5 py-1 text-xs hover:bg-purple-50 text-gray-700 hover:text-purple-900 transition-colors">
+                                                    <span class="font-semibold text-purple-700">pcs</span>
+                                                    <span class="text-[10px] text-gray-400">pieces</span>
+                                                </button>
+                                            </div>
+                                            <div class="py-0.5">
+                                                <button type="button" @click="selectUnit('')" class="w-full text-left px-2.5 py-1 text-[11px] text-gray-400 hover:bg-gray-100 hover:text-gray-600 italic transition-colors">
+                                                    (kosong)
+                                                </button>
+                                            </div>
                                         </div>
                                     </div>
                                 </td>
 
                                 {{-- JUMLAH: PENERIMAAN (Editable inline) --}}
-                                <td class="sticky-col sticky-col-penerimaan py-1.5 px-2 text-center text-sm text-gray-900 border border-black font-normal" style="background-color: {{ $cellBg }};"
+                                <td class="sticky-col sticky-col-penerimaan py-1.5 px-2 text-center text-sm text-gray-900 border border-black font-normal" style="background-color: {{ $cellBg }} !important;"
                                     x-data="balanceCell({{ $chem->id }}, '{{ $periodMonth }}', 'penerimaan', {{ $valPenerimaan }})"
                                     @dblclick="startEdit()">
                                     <template x-if="!editing">
                                         <div class="cursor-pointer hover:bg-amber-100/70 px-1 py-0.5 rounded text-center min-h-[22px]" title="Klik 2x untuk input penerimaan">
-                                            <span x-text="val > 0 ? (val % 1 === 0 ? val.toLocaleString('id-ID') : val.toString().replace('.', ',')) : ''"></span>
+                                            <span x-text="val > 0 ? (val % 1 === 0 ? val.toString() : val.toString().replace('.', ',')) : ''"></span>
                                         </div>
                                     </template>
                                     <template x-if="editing">
-                                        <input type="number" step="any" x-model="val" x-ref="inputEl"
+                                        <input type="text" inputmode="decimal" x-model="val" x-ref="inputEl"
                                                @blur="saveEdit()" @keydown.enter="saveEdit()" @keydown.escape="editing = false"
                                                class="w-20 text-center text-sm px-1 py-0.5 border border-blue-600 bg-white rounded focus:outline-none">
                                     </template>
                                 </td>
 
                                 {{-- JUMLAH: PENGELUARAN (Shows 0 or usage amount, editable inline) --}}
-                                <td class="sticky-col sticky-col-pengeluaran py-1.5 px-2 text-center text-sm text-gray-900 border border-black font-normal" style="background-color: {{ $cellBg }};">
+                                <td class="sticky-col sticky-col-pengeluaran py-1.5 px-2 text-center text-sm text-gray-900 border border-black font-normal" style="background-color: {{ $cellBg }} !important;">
                                     <span id="pengeluaran-m-{{ $chem->id }}">
-                                        {{ $valPengeluaran > 0 ? (floor($valPengeluaran) == $valPengeluaran ? number_format($valPengeluaran, 0, ',', '.') : str_replace('.', ',', (string)$valPengeluaran)) : '0' }}
+                                        {{ $valPengeluaran > 0 ? (floor($valPengeluaran) == $valPengeluaran ? number_format($valPengeluaran, 0, ',', '') : rtrim(rtrim(number_format($valPengeluaran, 4, ',', ''), '0'), ',')) : '0' }}
                                     </span>
                                 </td>
 
@@ -643,11 +724,11 @@
                                         @dblclick="startEdit()">
                                         <template x-if="!editing">
                                             <div class="cursor-pointer hover:bg-amber-100/70 px-1 py-0.5 rounded text-center min-h-[22px]" title="Klik 2x untuk input Take 1">
-                                                <span x-text="val !== null && val > 0 ? (val % 1 === 0 ? val.toLocaleString('id-ID') : val.toString().replace('.', ',')) : ''"></span>
+                                                <span x-text="val !== null && val > 0 ? (val % 1 === 0 ? val.toString() : val.toString().replace('.', ',')) : ''"></span>
                                             </div>
                                         </template>
                                         <template x-if="editing">
-                                            <input type="number" step="any" x-model="val" x-ref="inputEl"
+                                            <input type="text" inputmode="decimal" x-model="val" x-ref="inputEl"
                                                    @blur="saveEdit()" @keydown.enter="saveEdit()" @keydown.escape="editing = false"
                                                    class="w-16 text-center text-sm px-1 py-0.5 border border-blue-600 bg-white rounded focus:outline-none">
                                         </template>
@@ -659,11 +740,11 @@
                                         @dblclick="startEdit()">
                                         <template x-if="!editing">
                                             <div class="cursor-pointer hover:bg-amber-100/70 px-1 py-0.5 rounded text-center min-h-[22px]" title="Klik 2x untuk input Take 2">
-                                                <span x-text="val !== null && val > 0 ? (val % 1 === 0 ? val.toLocaleString('id-ID') : val.toString().replace('.', ',')) : ''"></span>
+                                                <span x-text="val !== null && val > 0 ? (val % 1 === 0 ? val.toString() : val.toString().replace('.', ',')) : ''"></span>
                                             </div>
                                         </template>
                                         <template x-if="editing">
-                                            <input type="number" step="any" x-model="val" x-ref="inputEl"
+                                            <input type="text" inputmode="decimal" x-model="val" x-ref="inputEl"
                                                    @blur="saveEdit()" @keydown.enter="saveEdit()" @keydown.escape="editing = false"
                                                    class="w-16 text-center text-sm px-1 py-0.5 border border-blue-600 bg-white rounded focus:outline-none">
                                         </template>
@@ -675,11 +756,11 @@
                                         @dblclick="startEdit()">
                                         <template x-if="!editing">
                                             <div class="cursor-pointer hover:bg-amber-100/70 px-1 py-0.5 rounded text-center min-h-[22px]" title="Klik 2x untuk input Take 3">
-                                                <span x-text="val !== null && val > 0 ? (val % 1 === 0 ? val.toLocaleString('id-ID') : val.toString().replace('.', ',')) : ''"></span>
+                                                <span x-text="val !== null && val > 0 ? (val % 1 === 0 ? val.toString() : val.toString().replace('.', ',')) : ''"></span>
                                             </div>
                                         </template>
                                         <template x-if="editing">
-                                            <input type="number" step="any" x-model="val" x-ref="inputEl"
+                                            <input type="text" inputmode="decimal" x-model="val" x-ref="inputEl"
                                                    @blur="saveEdit()" @keydown.enter="saveEdit()" @keydown.escape="editing = false"
                                                    class="w-16 text-center text-sm px-1 py-0.5 border border-blue-600 bg-white rounded focus:outline-none">
                                         </template>
@@ -689,8 +770,31 @@
                                 {{-- SALDO AKHIR --}}
                                 <td class="py-1.5 px-3 text-right text-sm font-bold text-gray-900 border border-black min-w-[110px] w-[110px]">
                                     <span id="saldo-akhir-m-{{ $chem->id }}">
-                                        {{ number_format($valSaldoAkhir, 0, ',', '.') }}
+                                        {{ floor($valSaldoAkhir) == $valSaldoAkhir ? number_format($valSaldoAkhir, 0, ',', '') : rtrim(rtrim(number_format($valSaldoAkhir, 4, ',', ''), '0'), ',') }}
                                     </span>
+                                </td>
+
+                                {{-- ACTIONS --}}
+                                <td class="py-1.5 px-2 text-center border border-black min-w-[110px] w-[110px]" style="background-color: {{ $cellBg }};">
+                                    <div class="flex flex-col items-center gap-1">
+                                        <button type="button"
+                                            class="inline-flex items-center gap-1 px-2 py-0.5 text-[11px] font-semibold bg-blue-50 text-blue-700 border border-blue-200 rounded hover:bg-blue-100 transition-colors cursor-pointer w-full justify-center"
+                                            @click="openRowEdit({
+                                                id: {{ $chem->id }},
+                                                name: {{ json_encode($chem->chemical_name) }},
+                                                unit: {{ json_encode($chem->unit ?? '') }},
+                                                saldo_awal: {{ $valSaldo }},
+                                                penerimaan: {{ $valPenerimaan }},
+                                                period_month: '{{ $periodMonth }}'
+                                            })">
+                                            <i data-lucide="pencil" class="w-2.5 h-2.5"></i> Edit
+                                        </button>
+                                        <button type="button"
+                                            class="inline-flex items-center gap-1 px-2 py-0.5 text-[11px] font-semibold bg-red-50 text-red-700 border border-red-200 rounded hover:bg-red-100 transition-colors cursor-pointer w-full justify-center"
+                                            @click="confirmRowDelete({{ $chem->id }}, {{ json_encode($chem->chemical_name) }})">
+                                            <i data-lucide="trash-2" class="w-2.5 h-2.5"></i> Hapus
+                                        </button>
+                                    </div>
                                 </td>
                             </tr>
                         @empty
@@ -709,7 +813,7 @@
         <div class="flex flex-col sm:flex-row items-center justify-between gap-2 px-1 pt-1 text-xs text-gray-500">
             <div class="flex items-center gap-1.5">
                 <i data-lucide="edit-3" class="w-3.5 h-3.5 text-gray-400"></i>
-                <span>Klik dua kali pada cell (nama, saldo awal, penerimaan) untuk edit langsung. Unit dapat diganti via dropdown pill.</span>
+                <span>Klik dua kali pada cell (nama, saldo awal, penerimaan) untuk edit langsung. Satuan dapat diganti via dropdown pill.</span>
             </div>
             <div class="flex flex-wrap items-center gap-3">
                 {{-- Per-page control --}}
@@ -805,7 +909,7 @@
                     </div>
 
                     <div>
-                        <label class="block text-xs font-semibold text-gray-700 uppercase tracking-wide mb-1">Satuan / Unit <span class="text-red-500">*</span></label>
+                        <label class="block text-xs font-semibold text-gray-700 uppercase tracking-wide mb-1">Satuan <span class="text-red-500">*</span></label>
                         <select name="unit" required
                                 class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none bg-white">
                             <option value="g">g</option>
@@ -904,6 +1008,100 @@
         </div>
     </div>
 
+    {{-- ═══════════════ MODAL EDIT BARIS ═══════════════ --}}
+    <div class="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
+         x-show="showRowEditModal" x-cloak
+         x-transition:enter="transition ease-out duration-200"
+         x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
+         @click.self="showRowEditModal = false">
+        <div class="bg-white rounded-xl shadow-2xl max-w-md w-full p-6 border border-gray-100"
+             x-transition:enter="transition ease-out duration-200"
+             x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100"
+             @click.stop>
+            <div class="flex items-center justify-between pb-3 border-b border-gray-100 mb-4">
+                <h3 class="text-base font-bold text-gray-900 flex items-center gap-2">
+                    <i data-lucide="pencil" class="w-4 h-4 text-blue-600"></i>
+                    Edit Chemical — Log Sheet
+                </h3>
+                <button @click="showRowEditModal=false" class="text-gray-400 hover:text-gray-600 cursor-pointer">
+                    <i data-lucide="x" class="w-5 h-5"></i>
+                </button>
+            </div>
+
+            <div class="space-y-3">
+                <div>
+                    <label class="block text-xs font-semibold text-gray-700 uppercase tracking-wide mb-1">Nama Chemical</label>
+                    <input x-model="rowEdit.name"
+                           class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                           placeholder="Nama chemical...">
+                </div>
+                <div class="grid grid-cols-2 gap-3">
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-700 uppercase tracking-wide mb-1">Unit</label>
+                        <input x-model="rowEdit.unit"
+                               class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none"
+                               placeholder="ml / g / pcs">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-semibold text-gray-700 uppercase tracking-wide mb-1">Saldo Awal</label>
+                        <input type="text" inputmode="decimal" x-model="rowEdit.saldo_awal"
+                               class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none font-mono"
+                               placeholder="0">
+                    </div>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-gray-700 uppercase tracking-wide mb-1">Penerimaan</label>
+                    <input type="text" inputmode="decimal" x-model="rowEdit.penerimaan"
+                           class="w-full px-3 py-2 text-sm border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:outline-none font-mono"
+                           placeholder="0">
+                </div>
+            </div>
+
+            <div class="mt-5 flex items-center justify-end gap-2 pt-4 border-t border-gray-100">
+                <button type="button" @click="showRowEditModal=false"
+                        class="px-4 py-2 text-sm font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors">
+                    Batal
+                </button>
+                <button type="button" @click="saveRowEdit()" :disabled="rowSaving"
+                        class="px-5 py-2 text-sm font-semibold text-white bg-blue-600 hover:bg-blue-700 rounded-lg transition-colors shadow-sm disabled:opacity-60">
+                    <span x-text="rowSaving ? 'Menyimpan...' : 'Simpan Perubahan'"></span>
+                </button>
+            </div>
+        </div>
+    </div>
+
+    {{-- ═══════════════ MODAL KONFIRMASI HAPUS BARIS ═══════════════ --}}
+    <div class="fixed inset-0 z-[9999] flex items-center justify-center p-4 bg-black/50 backdrop-blur-sm"
+         x-show="showRowDeleteModal" x-cloak
+         x-transition:enter="transition ease-out duration-150"
+         x-transition:enter-start="opacity-0" x-transition:enter-end="opacity-100"
+         @click.self="showRowDeleteModal = false">
+        <div class="bg-white rounded-xl shadow-2xl max-w-sm w-full p-6 border border-gray-100" @click.stop
+             x-transition:enter="transition ease-out duration-150"
+             x-transition:enter-start="opacity-0 scale-95" x-transition:enter-end="opacity-100 scale-100">
+            <div class="flex flex-col items-center gap-3 text-center">
+                <div class="w-12 h-12 rounded-full bg-red-100 flex items-center justify-center">
+                    <i data-lucide="trash-2" class="w-6 h-6 text-red-500"></i>
+                </div>
+                <h3 class="text-base font-bold text-gray-900">Hapus Chemical?</h3>
+                <p class="text-sm text-gray-500">
+                    Chemical <strong x-text="rowDeleteTarget.name" class="text-gray-800"></strong>
+                    beserta semua data log harian dan bulanannya akan dihapus permanen dan tidak dapat dikembalikan.
+                </p>
+            </div>
+            <div class="flex items-center justify-center gap-2 mt-5">
+                <button type="button" @click="showRowDeleteModal=false"
+                        class="px-4 py-2 text-sm font-medium text-gray-600 bg-gray-100 hover:bg-gray-200 rounded-lg transition-colors">
+                    Batal
+                </button>
+                <button type="button" @click="doRowDelete()" :disabled="rowDeleting"
+                        class="px-5 py-2 text-sm font-semibold text-white bg-red-600 hover:bg-red-700 rounded-lg transition-colors shadow-sm disabled:opacity-60">
+                    <span x-text="rowDeleting ? 'Menghapus...' : 'Ya, Hapus'"></span>
+                </button>
+            </div>
+        </div>
+    </div>
+
 </div>
 
 @endsection
@@ -912,9 +1110,115 @@
 <script>
 function logChemicalMatrix() {
     return {
+        // existing modal state
         showAddDateModal: false,
         showAddChemicalModal: false,
         showFilterModal: false,
+
+        // ── Row edit modal ──
+        showRowEditModal: false,
+        rowSaving: false,
+        rowEdit: { id: null, name: '', unit: '', saldo_awal: 0, penerimaan: 0, period_month: '' },
+
+        // ── Row delete modal ──
+        showRowDeleteModal: false,
+        rowDeleting: false,
+        rowDeleteTarget: { id: null, name: '' },
+        deletedRowIds: [],
+
+        openRowEdit(row) {
+            const formatNum = (v) => {
+                if (v === null || v === undefined || v === '') return '';
+                const clean = String(v).replace(',', '.');
+                const n = parseFloat(clean);
+                if (isNaN(n) || n === 0) return '0';
+                if (Number.isInteger(n)) return n.toString();
+                return n.toFixed(4).replace(/\.?0+$/, '').replace('.', ',');
+            };
+            this.rowEdit = {
+                ...row,
+                saldo_awal: formatNum(row.saldo_awal),
+                penerimaan: formatNum(row.penerimaan),
+            };
+            this.showRowEditModal = true;
+        },
+
+        async saveRowEdit() {
+            this.rowSaving = true;
+            const csrf = document.querySelector('meta[name="csrf-token"]')?.content;
+            const base = '{{ url('/transactions') }}';
+            try {
+                const cleanSaldo = String(this.rowEdit.saldo_awal || '').replace(',', '.').trim();
+                const cleanPenerimaan = String(this.rowEdit.penerimaan || '').replace(',', '.').trim();
+
+                // chemical name
+                await fetch(base + '/update-chemical', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrf },
+                    body: JSON.stringify({ chemical_id: this.rowEdit.id, field: 'chemical_name', value: this.rowEdit.name })
+                });
+                // unit
+                await fetch(base + '/update-chemical', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrf },
+                    body: JSON.stringify({ chemical_id: this.rowEdit.id, field: 'unit', value: this.rowEdit.unit })
+                });
+                // saldo_awal
+                await fetch(base + '/update-balance', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrf },
+                    body: JSON.stringify({ chemical_id: this.rowEdit.id, period_month: this.rowEdit.period_month, field: 'saldo_awal', value: cleanSaldo })
+                });
+                // penerimaan
+                const res = await fetch(base + '/update-balance', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json', 'X-CSRF-TOKEN': csrf },
+                    body: JSON.stringify({ chemical_id: this.rowEdit.id, period_month: this.rowEdit.period_month, field: 'penerimaan', value: cleanPenerimaan })
+                });
+                const data = await res.json();
+
+                // Update saldo-akhir display
+                const saldoEl = document.getElementById('saldo-akhir-m-' + this.rowEdit.id);
+                if (saldoEl && data.saldo_akhir !== undefined) saldoEl.textContent = data.saldo_akhir;
+
+                this.showRowEditModal = false;
+                sessionStorage.setItem('idx_keep_row', this.rowEdit.id);
+                sessionStorage.setItem('idx_scroll_y', window.scrollY);
+                // Reload to reflect name/unit changes
+                window.location.reload();
+            } catch(e) {
+                alert('Gagal menyimpan. Silakan coba lagi.');
+            } finally {
+                this.rowSaving = false;
+            }
+        },
+
+        confirmRowDelete(id, name) {
+            this.rowDeleteTarget = { id, name };
+            this.showRowDeleteModal = true;
+        },
+
+        async doRowDelete() {
+            this.rowDeleting = true;
+            const csrf = document.querySelector('meta[name="csrf-token"]')?.content;
+            try {
+                const resp = await fetch(`/transactions/chemicals/${this.rowDeleteTarget.id}`, {
+                    method: 'DELETE',
+                    headers: { 'X-CSRF-TOKEN': csrf, 'Accept': 'application/json' }
+                });
+                if (resp.ok) {
+                    const row = document.getElementById('row-' + this.rowDeleteTarget.id);
+                    if (row) row.remove();
+                    this.showRowDeleteModal = false;
+                } else {
+                    alert('Gagal menghapus. Silakan coba lagi.');
+                }
+            } catch(e) {
+                alert('Error saat menghapus.');
+            } finally {
+                this.rowDeleting = false;
+            }
+        }
     }
 }
 
@@ -940,15 +1244,17 @@ function unitPillSelector(chemicalId, initialUnit) {
         unitClass(u) {
             const low = (u || '').toLowerCase();
             if (low === 'g') {
-                return 'bg-[#fef08a] text-[#854d0e] border-[#eab308] hover:bg-[#fde047]';
+                return 'bg-amber-100/90 text-amber-900 border-amber-400/80 hover:bg-amber-200';
             } else if (low === 'ml') {
-                return 'bg-[#fed7aa] text-[#9a3412] border-[#f97316] hover:bg-[#fdba74]';
+                return 'bg-orange-100/90 text-orange-900 border-orange-400/80 hover:bg-orange-200';
             } else if (low === 'l') {
-                return 'bg-blue-100 text-blue-800 border-blue-300 hover:bg-blue-200';
+                return 'bg-blue-100/90 text-blue-900 border-blue-400/80 hover:bg-blue-200';
             } else if (low === 'kg') {
-                return 'bg-emerald-100 text-emerald-800 border-emerald-300 hover:bg-emerald-200';
+                return 'bg-emerald-100/90 text-emerald-900 border-emerald-400/80 hover:bg-emerald-200';
+            } else if (low === 'pcs') {
+                return 'bg-purple-100/90 text-purple-900 border-purple-400/80 hover:bg-purple-200';
             }
-            return 'bg-gray-100 text-gray-400 border-gray-300 hover:bg-gray-200';
+            return 'bg-gray-100 text-gray-500 border-gray-300 hover:bg-gray-200';
         },
         selectUnit(newUnit) {
             this.unit = newUnit;
@@ -1086,6 +1392,9 @@ function usageCell(chemicalId, logDateId, field, initialVal) {
         },
         saveEdit() {
             this.editing = false;
+            const cleanVal = this.val !== null && this.val !== undefined && this.val !== ''
+                ? String(this.val).replace(',', '.').trim()
+                : '';
             fetch("{{ route('transactions.update-cell') }}", {
                 method: "POST",
                 headers: {
@@ -1097,7 +1406,7 @@ function usageCell(chemicalId, logDateId, field, initialVal) {
                     chemical_id: this.chemicalId,
                     log_date_id: this.logDateId,
                     field: this.field,
-                    value: this.val
+                    value: cleanVal
                 })
             })
             .then(res => res.json())
@@ -1141,6 +1450,9 @@ function balanceCell(chemicalId, periodMonth, field, initialVal) {
         },
         saveEdit() {
             this.editing = false;
+            const cleanVal = this.val !== null && this.val !== undefined && this.val !== ''
+                ? String(this.val).replace(',', '.').trim()
+                : '';
             fetch("{{ route('transactions.update-balance') }}", {
                 method: "POST",
                 headers: {
@@ -1152,7 +1464,7 @@ function balanceCell(chemicalId, periodMonth, field, initialVal) {
                     chemical_id: this.chemicalId,
                     period_month: this.periodMonth,
                     field: this.field,
-                    value: this.val
+                    value: cleanVal
                 })
             })
             .then(res => res.json())
@@ -1178,23 +1490,37 @@ function balanceCell(chemicalId, periodMonth, field, initialVal) {
 }
 </script>
 
-@if(request('highlight'))
 <script>
 document.addEventListener('DOMContentLoaded', function () {
-    const highlightId = {{ (int)request('highlight') }};
-    const row = document.getElementById('row-' + highlightId);
-    if (row) {
-        // Smooth scroll to the row
-        row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+    const keepId = sessionStorage.getItem('idx_keep_row');
+    const scrollY = sessionStorage.getItem('idx_scroll_y');
+    if (keepId) {
+        sessionStorage.removeItem('idx_keep_row');
+        sessionStorage.removeItem('idx_scroll_y');
+        const row = document.getElementById('row-' + keepId);
+        if (row) {
+            row.scrollIntoView({ behavior: 'smooth', block: 'center' });
+            row.classList.add('ring-2', 'ring-yellow-400', 'ring-inset');
+            setTimeout(function () {
+                row.classList.remove('ring-2', 'ring-yellow-400', 'ring-inset');
+            }, 2500);
+        } else if (scrollY) {
+            window.scrollTo(0, parseInt(scrollY));
+        }
+    }
 
-        // Pulse animation: fade out the yellow after 2.5s
+    @if(request('highlight'))
+    const highlightId = {{ (int)request('highlight') }};
+    const highlightRow = document.getElementById('row-' + highlightId);
+    if (highlightRow) {
+        highlightRow.scrollIntoView({ behavior: 'smooth', block: 'center' });
         setTimeout(function () {
-            row.style.transition = 'background-color 1s ease';
-            row.style.backgroundColor = '';
-            row.classList.remove('ring-2', 'ring-yellow-400', 'ring-inset');
+            highlightRow.style.transition = 'background-color 1s ease';
+            highlightRow.style.backgroundColor = '';
+            highlightRow.classList.remove('ring-2', 'ring-yellow-400', 'ring-inset');
         }, 2500);
     }
+    @endif
 });
 </script>
-@endif
 @endpush

@@ -11,12 +11,36 @@ class ChemicalService
 {
     /**
      * Generate a unique chemical code.
+     *
+     * Uses a sequential number based on max existing code, with a uniqueness loop
+     * to handle gaps from deleted records. Falls back to timestamp+random suffix
+     * if no unique sequential code can be found after reasonable attempts.
      */
     public function generateChemicalCode(): string
     {
-        $last = Chemical::orderBy('id', 'desc')->first();
-        $next = $last ? ($last->id + 1) : 1;
-        return 'CHM-' . str_pad($next, 4, '0', STR_PAD_LEFT);
+        // Derive next sequence from the highest CHM-XXXX code in the database
+        $lastCode = Chemical::where('chemical_code', 'like', 'CHM-%')
+            ->orderByRaw("CAST(REPLACE(chemical_code, 'CHM-', '') AS UNSIGNED) DESC")
+            ->value('chemical_code');
+
+        $next = 1;
+        if ($lastCode && preg_match('/^CHM-(\d+)$/', $lastCode, $m)) {
+            $next = (int) $m[1] + 1;
+        }
+
+        // Loop to ensure uniqueness (handles gaps from deleted records)
+        $attempts = 0;
+        while ($attempts < 10) {
+            $candidate = 'CHM-' . str_pad($next, 4, '0', STR_PAD_LEFT);
+            if (!Chemical::where('chemical_code', $candidate)->exists()) {
+                return $candidate;
+            }
+            $next++;
+            $attempts++;
+        }
+
+        // Fallback: timestamp + random suffix (collision-safe by construction)
+        return 'CHM-' . now()->format('YmdHis') . '-' . strtoupper(\Illuminate\Support\Str::random(4));
     }
 
     /**

@@ -69,7 +69,7 @@ Route::middleware('auth')->group(function () {
 
     // Log Chemical (Inventory & Daily Usage Record)
     Route::prefix('transactions')->name('transactions.')->group(function () {
-        Route::get('/',                     [TransactionController::class, 'masterReport'])->name('index');
+        Route::get('/',                     [TransactionController::class, 'index'])->name('index');
         Route::get('/master-report',        [TransactionController::class, 'masterReport'])->name('master-report');
         Route::get('/warning-stock',        [TransactionController::class, 'warningStock'])->name('warning-stock');
         Route::get('/matrix',               [TransactionController::class, 'index'])->name('matrix');
@@ -80,6 +80,8 @@ Route::middleware('auth')->group(function () {
         Route::post('/update-chemical',     [TransactionController::class, 'updateChemical'])->name('update-chemical');
         Route::post('/update-analyst',      [TransactionController::class, 'updateAnalyst'])->name('update-analyst');
         Route::post('/quick-add-chemical',   [TransactionController::class, 'quickAddChemical'])->name('quick-add-chemical');
+        Route::post('/update-minimum-stock',   [TransactionController::class, 'updateMinimumStock'])->name('update-minimum-stock');
+        Route::delete('/chemicals/{chemical}', [TransactionController::class, 'destroyChemical'])->name('chemicals.destroy');
     });
 
     // QR Scanner

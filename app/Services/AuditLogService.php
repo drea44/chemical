@@ -47,8 +47,11 @@ class AuditLogService
         ]);
     }
 
-    public static function logLogout(int $userId): void
+    public static function logLogout(?int $userId = null): void
     {
+        if (!$userId) {
+            return;
+        }
         AuditLog::create([
             'user_id'     => $userId,
             'action'      => 'logout',

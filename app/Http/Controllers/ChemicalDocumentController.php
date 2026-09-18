@@ -21,16 +21,21 @@ class ChemicalDocumentController extends Controller
 
         $request->validate([
             'document_type' => 'required|in:COA,MSDS',
-            'document_file' => 'required|file|mimes:pdf,doc,docx,jpg,jpeg,png|max:10240',
+            'document_file' => 'required|file|mimes:pdf,jpg,jpeg,png|max:10240',
             'notes'         => 'nullable|string|max:500',
         ], [
             'document_file.required' => 'Pilih file dokumen terlebih dahulu.',
-            'document_file.mimes'    => 'Format file harus PDF, DOC, DOCX, JPG, atau PNG.',
+            'document_file.mimes'    => 'Format file harus PDF, JPG, atau PNG.',
             'document_file.max'      => 'Ukuran file maksimal 10 MB.',
             'document_type.required' => 'Pilih tipe dokumen (COA atau MSDS).',
         ]);
 
+        // Second-layer MIME validation: verify actual file content matches allowed types
         $file = $request->file('document_file');
+        $allowedMimes = ['application/pdf', 'image/jpeg', 'image/png'];
+        if (!in_array($file->getMimeType(), $allowedMimes)) {
+            return back()->withErrors(['document_file' => 'Tipe file tidak diizinkan. Hanya PDF, JPG, atau PNG.'])->withInput();
+        }
         $type = $request->input('document_type');
 
         // Store in storage/app/public/documents/{chemical_code}/

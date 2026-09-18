@@ -58,6 +58,11 @@
                     'route' => 'transactions.warning-stock',
                     'match' => 'transactions.warning-stock*',
                 ],
+                [
+                    'label' => 'Daily Usage Sheet',
+                    'route' => 'transactions.index',
+                    'match' => 'transactions.index*',
+                ],
             ],
         ],
         [
@@ -154,7 +159,7 @@
                         <div x-show="open" class="pl-7 pr-1 space-y-0.5 pt-0.5 pb-1">
                             @foreach($item['children'] as $child)
                                 @php
-                                    $childActive = request()->routeIs($child['match']) || (request()->routeIs('transactions.index') && $child['route'] === 'transactions.master-report');
+                                    $childActive = request()->routeIs($child['match']) || request()->routeIs($child['route']);
                                 @endphp
                                 <a href="{{ route($child['route']) }}"
                                    class="block px-3 py-1.5 rounded text-xs font-medium transition-all duration-150"

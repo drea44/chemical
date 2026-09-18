@@ -8,8 +8,12 @@ use App\Models\ChemicalDailyUsage;
 use App\Models\ChemicalLocation;
 use App\Models\ChemicalLogDate;
 use App\Models\ChemicalMonthlyBalance;
+use App\Services\AuditLogService;
+use App\Services\StockService;
 use Carbon\Carbon;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\DB;
+use Illuminate\Support\Facades\Gate;
 use Illuminate\Support\Str;
 
 class TransactionController extends Controller
@@ -41,17 +45,15 @@ class TransactionController extends Controller
             });
         }
 
-        // Prioritize reference chemical sequence
-        $prioritizedNames = self::getReferenceChemicalNames();
-        $caseOrder = 'CASE ';
-        foreach ($prioritizedNames as $pos => $name) {
-            $escaped = addslashes($name);
-            $caseOrder .= "WHEN chemical_name = '{$escaped}' THEN {$pos} ";
+        $perPageParam = $request->get('per_page', 'all');
+        if ($perPageParam === 'all' || (int)$perPageParam <= 0) {
+            $perPage = 500; // Tampilkan semua chemical sekaligus tanpa pagination
+        } else {
+            $perPage = (int)$perPageParam;
         }
-        $caseOrder .= 'ELSE 9999 END, id ASC';
 
-        $perPage   = (int) $request->get('per_page', 50);
-        $chemicals = $query->orderByRaw($caseOrder)
+        $chemicals = $query->orderByRaw('COALESCE(sort_order, 9999) ASC')
+            ->orderBy('id', 'asc')
             ->paginate($perPage)
             ->withQueryString();
 
@@ -62,7 +64,7 @@ class TransactionController extends Controller
             ->get()
             ->groupBy('chemical_id');
 
-        // Map per chemical: [month => amount]
+        // Map per chemical: [month => ['amount' => x, 'unit' => y]]
         $matrix = [];
         foreach ($chemicals as $chem) {
             $chemBalances = $balances->get($chem->id, collect())->keyBy('period_month');
@@ -71,7 +73,10 @@ class TransactionController extends Controller
             foreach ($reportMonths as $mKey => $mLabel) {
                 $mb = $chemBalances->get($mKey);
                 if ($mb && $mb->saldo_awal !== null) {
-                    $matrix[$chem->id][$mKey] = (float) $mb->saldo_awal;
+                    $matrix[$chem->id][$mKey] = [
+                        'amount' => (float) $mb->saldo_awal,
+                        'unit'   => $mb->unit ?? null,
+                    ];
                 } else {
                     $matrix[$chem->id][$mKey] = null;
                 }
@@ -134,36 +139,22 @@ class TransactionController extends Controller
             });
         }
 
-        // Ordering: exact reference chemical sequence
-        $prioritizedNames = self::getReferenceChemicalNames();
-        $caseOrder = 'CASE ';
-        foreach ($prioritizedNames as $pos => $name) {
-            $escaped = addslashes($name);
-            $caseOrder .= "WHEN chemical_name = '{$escaped}' THEN {$pos} ";
-        }
-        $caseOrder .= 'ELSE 9999 END, id ASC';
-
         $perPage   = (int) $request->get('per_page', 50);
-        $chemicals = $query->orderByRaw($caseOrder)
+        $chemicals = $query->orderByRaw('COALESCE(sort_order, 9999) ASC')
+            ->orderBy('id', 'asc')
             ->paginate($perPage)
             ->withQueryString();
 
-        // 2. Eager-load baseline Stok Awal from initial/March monthly balance
+        // 2. Eager-load baseline Stok Awal from the earliest available monthly balance per chemical.
+        // Using earliest period ensures we get the actual "starting point" regardless of which
+        // year/month data was first recorded — avoids the previously hardcoded '2026-03'.
         $chemicalIds = $chemicals->pluck('id');
         $baselineBalances = ChemicalMonthlyBalance::whereIn('chemical_id', $chemicalIds)
-            ->where('period_month', '2026-03')
+            ->orderBy('period_month', 'asc')
             ->get()
+            ->groupBy('chemical_id')
+            ->map(fn($group) => $group->first()) // earliest record per chemical
             ->keyBy('chemical_id');
-
-        // Also fetch any earliest monthly balance for items not in 2026-03
-        $missingIds = $chemicalIds->diff($baselineBalances->keys());
-        if ($missingIds->isNotEmpty()) {
-            $earliestBalances = ChemicalMonthlyBalance::whereIn('chemical_id', $missingIds)
-                ->orderBy('period_month', 'asc')
-                ->get()
-                ->keyBy('chemical_id');
-            $baselineBalances = $baselineBalances->union($earliestBalances);
-        }
 
         // 3. Prepare display rows
         $rows = [];
@@ -269,19 +260,9 @@ class TransactionController extends Controller
             $query->where('category_id', $catId);
         }
 
-        // Prioritize all 248 reference chemicals from Sheets 1-12 in exact sequence (1 to 248)
-        $prioritizedNames = self::getReferenceChemicalNames();
-
-        // SQL case for exact ordering of the 248 reference chemicals, then newly added at the bottom (id ASC)
-        $caseOrder = 'CASE ';
-        foreach ($prioritizedNames as $pos => $name) {
-            $escaped = addslashes($name);
-            $caseOrder .= "WHEN chemical_name = '{$escaped}' THEN {$pos} ";
-        }
-        $caseOrder .= 'ELSE 9999 END, id ASC';
-
         $perPage   = (int)$request->get('per_page', 100);
-        $chemicals = $query->orderByRaw($caseOrder)
+        $chemicals = $query->orderByRaw('COALESCE(sort_order, 9999) ASC')
+            ->orderBy('id', 'asc')
             ->paginate($perPage)
             ->withQueryString();
 
@@ -398,6 +379,9 @@ class TransactionController extends Controller
 
     public function storeDate(Request $request)
     {
+        // Authorization: only ADMIN / STOCK_MANAGER can add log dates
+        abort_unless(auth()->user()?->canManageStock(), 403, 'Tidak memiliki akses untuk menambah tanggal log.');
+
         $request->validate([
             'log_date'     => 'required|date',
             'analyst_name' => 'nullable|string|max:100',
@@ -426,6 +410,8 @@ class TransactionController extends Controller
 
     public function deleteDate(ChemicalLogDate $date)
     {
+        // Authorization: only ADMIN / STOCK_MANAGER can delete log dates
+        abort_unless(auth()->user()?->canManageStock(), 403, 'Tidak memiliki akses untuk menghapus tanggal log.');
         $period = $date->period_month;
         $date->delete();
 
@@ -435,6 +421,15 @@ class TransactionController extends Controller
 
     public function updateCell(Request $request)
     {
+        // Authorization: only ADMIN / STOCK_MANAGER
+        abort_unless(auth()->user()?->canManageStock(), 403);
+
+        $cleanVal = $request->value;
+        if (is_string($cleanVal)) {
+            $cleanVal = str_replace(',', '.', trim($cleanVal));
+        }
+        $request->merge(['value' => $cleanVal]);
+
         $request->validate([
             'chemical_id' => 'required|exists:chemicals,id',
             'log_date_id' => 'required|exists:chemical_log_dates,id',
@@ -444,41 +439,56 @@ class TransactionController extends Controller
 
         $val = ($request->value !== null && $request->value !== '') ? (float)$request->value : null;
 
-        $usage = ChemicalDailyUsage::firstOrCreate([
-            'chemical_id' => $request->chemical_id,
-            'log_date_id' => $request->log_date_id,
-        ]);
+        $result = DB::transaction(function () use ($request, $val) {
+            $usage = ChemicalDailyUsage::firstOrCreate([
+                'chemical_id' => $request->chemical_id,
+                'log_date_id' => $request->log_date_id,
+            ]);
 
-        $usage->{$request->field} = $val;
-        $usage->updated_by = auth()->id();
-        $usage->save();
+            $usage->{$request->field} = $val;
+            $usage->updated_by = auth()->id();
+            $usage->save();
 
-        // Recalculate row totals
-        $logDate = ChemicalLogDate::findOrFail($request->log_date_id);
-        $dateIds = ChemicalLogDate::where('period_month', $logDate->period_month)->pluck('id');
+            // Recalculate row totals
+            $logDate = ChemicalLogDate::findOrFail($request->log_date_id);
+            $dateIds = ChemicalLogDate::where('period_month', $logDate->period_month)->pluck('id');
 
-        $usages = ChemicalDailyUsage::where('chemical_id', $request->chemical_id)
-            ->whereIn('log_date_id', $dateIds)
-            ->get();
+            $usages = ChemicalDailyUsage::where('chemical_id', $request->chemical_id)
+                ->whereIn('log_date_id', $dateIds)
+                ->get();
 
-        $totalPengeluaran = $usages->sum(function ($u) {
-            return (float)($u->take_1 ?? 0) + (float)($u->take_2 ?? 0) + (float)($u->take_3 ?? 0);
+            $totalPengeluaran = $usages->sum(function ($u) {
+                return (float)($u->take_1 ?? 0) + (float)($u->take_2 ?? 0) + (float)($u->take_3 ?? 0);
+            });
+
+            $monthlyBalance = ChemicalMonthlyBalance::where('chemical_id', $request->chemical_id)
+                ->where('period_month', $logDate->period_month)
+                ->first();
+
+            $chemical   = Chemical::findOrFail($request->chemical_id);
+            $saldoAwal  = (float)($monthlyBalance?->saldo_awal ?? $chemical->current_stock);
+            $penerimaan = (float)($monthlyBalance?->penerimaan ?? 0);
+            $saldoAkhir = $saldoAwal + $penerimaan - $totalPengeluaran;
+
+            return compact('totalPengeluaran', 'saldoAkhir');
         });
 
-        $monthlyBalance = ChemicalMonthlyBalance::where('chemical_id', $request->chemical_id)
-            ->where('period_month', $logDate->period_month)
-            ->first();
+        $totalPengeluaran = $result['totalPengeluaran'];
+        $saldoAkhir       = $result['saldoAkhir'];
 
-        $chemical   = Chemical::find($request->chemical_id);
-        $saldoAwal  = (float)($monthlyBalance?->saldo_awal ?? $chemical->current_stock);
-        $penerimaan = (float)($monthlyBalance?->penerimaan ?? 0);
-        $saldoAkhir = $saldoAwal + $penerimaan - $totalPengeluaran;
+        $formattedPengeluaran = floor($totalPengeluaran) == $totalPengeluaran
+            ? number_format($totalPengeluaran, 0, ',', '')
+            : rtrim(rtrim(number_format($totalPengeluaran, 4, ',', ''), '0'), ',');
+
+        $formattedSaldoAkhir = floor($saldoAkhir) == $saldoAkhir
+            ? number_format($saldoAkhir, 0, ',', '')
+            : rtrim(rtrim(number_format($saldoAkhir, 4, ',', ''), '0'), ',');
 
         return response()->json([
             'success'         => true,
             'value'           => $val,
-            'pengeluaran'     => number_format($totalPengeluaran, 0, '.', ','),
-            'saldo_akhir'     => number_format($saldoAkhir, 0, '.', ','),
+            'pengeluaran'     => $formattedPengeluaran,
+            'saldo_akhir'     => $formattedSaldoAkhir,
             'raw_pengeluaran' => $totalPengeluaran,
             'raw_saldo_akhir' => $saldoAkhir,
         ]);
@@ -486,14 +496,14 @@ class TransactionController extends Controller
 
     public function updateBalance(Request $request)
     {
+        // Authorization: only ADMIN / STOCK_MANAGER
+        abort_unless(auth()->user()?->canManageStock(), 403);
         $request->validate([
             'chemical_id'  => 'required|exists:chemicals,id',
             'period_month' => 'required|string|size:7',
-            'field'        => 'required|in:saldo_awal,penerimaan',
-            'value'        => 'required|numeric|min:0',
+            'field'        => 'required|in:saldo_awal,penerimaan,unit',
+            'value'        => 'nullable',
         ]);
-
-        $val = (float)$request->value;
 
         $monthlyBalance = ChemicalMonthlyBalance::firstOrCreate(
             [
@@ -501,13 +511,37 @@ class TransactionController extends Controller
                 'period_month' => $request->period_month,
             ],
             [
-                'saldo_awal' => 0,
+                'saldo_awal' => null,
                 'penerimaan' => 0,
             ]
         );
 
-        $monthlyBalance->{$request->field} = $val;
+        $field  = $request->field;
+        $oldVal = $monthlyBalance->{$field};
+
+        if ($field === 'unit') {
+            $val = ($request->value !== null && $request->value !== '') ? trim($request->value) : null;
+            $monthlyBalance->unit = $val;
+            $monthlyBalance->save();
+
+            return response()->json(['success' => true, 'value' => $val]);
+        }
+
+        $rawVal = $request->value;
+        if (is_string($rawVal)) {
+            $rawVal = str_replace(',', '.', trim($rawVal));
+        }
+        $val = ($rawVal !== null && $rawVal !== '') ? (float)$rawVal : null;
+        $monthlyBalance->{$field} = $val;
         $monthlyBalance->save();
+
+        AuditLogService::logUpdated('ChemicalMonthlyBalance', $monthlyBalance->id, [
+            $field         => $oldVal,
+            'period_month' => $request->period_month,
+        ], [
+            $field         => $val,
+            'period_month' => $request->period_month,
+        ]);
 
         // Recalculate
         $dateIds = ChemicalLogDate::where('period_month', $request->period_month)->pluck('id');
@@ -523,16 +557,27 @@ class TransactionController extends Controller
         $penerimaan = (float)$monthlyBalance->penerimaan;
         $saldoAkhir = $saldoAwal + $penerimaan - $totalPengeluaran;
 
+        $formattedPengeluaran = floor($totalPengeluaran) == $totalPengeluaran
+            ? number_format($totalPengeluaran, 0, ',', '')
+            : rtrim(rtrim(number_format($totalPengeluaran, 4, ',', ''), '0'), ',');
+
+        $formattedSaldoAkhir = floor($saldoAkhir) == $saldoAkhir
+            ? number_format($saldoAkhir, 0, ',', '')
+            : rtrim(rtrim(number_format($saldoAkhir, 4, ',', ''), '0'), ',');
+
         return response()->json([
             'success'     => true,
             'value'       => $val,
-            'pengeluaran' => number_format($totalPengeluaran, 0, '.', ','),
-            'saldo_akhir' => number_format($saldoAkhir, 0, '.', ','),
+            'pengeluaran' => $formattedPengeluaran,
+            'saldo_akhir' => $formattedSaldoAkhir,
         ]);
     }
 
     public function updateChemical(Request $request)
     {
+        // Authorization: only ADMIN / STOCK_MANAGER
+        abort_unless(auth()->user()?->canManageStock(), 403);
+
         $request->validate([
             'chemical_id' => 'required|exists:chemicals,id',
             'field'       => 'required|in:chemical_name,unit',
@@ -540,8 +585,12 @@ class TransactionController extends Controller
         ]);
 
         $chemical = Chemical::findOrFail($request->chemical_id);
+        $old = [$request->field => $chemical->{$request->field}];
         $chemical->{$request->field} = trim($request->value);
+        $chemical->updated_by = auth()->id();
         $chemical->save();
+
+        AuditLogService::logUpdated('Chemical', $chemical->id, $old, [$request->field => $chemical->{$request->field}]);
 
         return response()->json([
             'success' => true,
@@ -551,6 +600,8 @@ class TransactionController extends Controller
 
     public function updateAnalyst(Request $request)
     {
+        // Authorization: only ADMIN / STOCK_MANAGER
+        abort_unless(auth()->user()?->canManageStock(), 403);
         $request->validate([
             'log_date_id'  => 'required|exists:chemical_log_dates,id',
             'field'        => 'nullable|in:analyst_name,analyst_take_1,analyst_take_2,analyst_take_3',
@@ -576,40 +627,216 @@ class TransactionController extends Controller
 
     public function quickAddChemical(Request $request)
     {
+        // Authorization: only ADMIN / STOCK_MANAGER
+        abort_unless(auth()->user()?->canManageStock(), 403);
+
+        // Normalize comma decimals to dot
+        $input = $request->all();
+        foreach (['saldo_awal', 'penerimaan', 'minimum_stock', 'current_stock'] as $f) {
+            if (isset($input[$f]) && is_string($input[$f])) {
+                $input[$f] = str_replace(',', '.', trim($input[$f]));
+            }
+        }
+        if (isset($input['months']) && is_array($input['months'])) {
+            foreach ($input['months'] as $mk => $mv) {
+                if (is_string($mv)) {
+                    $input['months'][$mk] = str_replace(',', '.', trim($mv));
+                }
+            }
+        }
+        $request->merge($input);
+
         $request->validate([
             'chemical_name' => 'required|string|max:255',
             'unit'          => 'required|string|max:50',
-            'period_month'  => 'required|string|size:7',
+            'period_month'  => 'nullable|string|size:7',
             'saldo_awal'    => 'nullable|numeric|min:0',
             'penerimaan'    => 'nullable|numeric|min:0',
+            'minimum_stock' => 'nullable|numeric|min:0',
+            'current_stock' => 'nullable|numeric|min:0',
+            'redirect_to'   => 'nullable|string|in:master-report,warning-stock,index',
+            'months'        => 'nullable|array',
         ]);
 
-        $code = 'CHM-LOG-' . strtoupper(Str::random(5));
-        $category = ChemicalCategory::first();
-        $location = ChemicalLocation::first();
+        $code         = 'CHM-LOG-' . strtoupper(Str::random(5));
+        $category     = ChemicalCategory::first();
+        $location     = ChemicalLocation::first();
 
-        $saldoAwal  = (float)($request->saldo_awal ?? 0);
-        $penerimaan = (float)($request->penerimaan ?? 0);
+        $saldoAwal    = (float)($request->saldo_awal ?? $request->current_stock ?? 0);
+        $penerimaan   = (float)($request->penerimaan ?? 0);
+        $minimumStock = (float)($request->minimum_stock ?? 0);
+        $periodMonth  = $request->period_month ?? now()->format('Y-m');
 
-        $chemical = Chemical::create([
-            'chemical_code' => $code,
-            'chemical_name' => trim($request->chemical_name),
-            'unit'          => trim($request->unit),
-            'category_id'   => $category?->id ?? 1,
-            'location_id'   => $location?->id ?? 1,
-            'current_stock' => $saldoAwal + $penerimaan,
-            'status'        => 'SAFE',
-        ]);
+        $totalStock = $saldoAwal + $penerimaan;
+        $status = 'SAFE';
+        if ($minimumStock > 0 && $totalStock <= $minimumStock) {
+            $status = 'LOW';
+        }
 
-        ChemicalMonthlyBalance::create([
-            'chemical_id'  => $chemical->id,
-            'period_month' => $request->period_month,
-            'saldo_awal'   => $saldoAwal,
-            'penerimaan'   => $penerimaan,
-        ]);
+        // Wrap chemical creation + monthly balance creation in a single transaction
+        // so partial state (chemical exists but no balances) can never occur.
+        $chemical = DB::transaction(function () use (
+            $request, $code, $category, $location,
+            $saldoAwal, $penerimaan, $minimumStock, $periodMonth,
+            $totalStock, $status
+        ) {
+            $maxOrder = (int)(Chemical::max('sort_order') ?? 0);
 
-        return redirect()->route('transactions.index', ['month' => $request->period_month, 'highlight' => $chemical->id])
+            $chemical = Chemical::create([
+                'sort_order'    => $maxOrder + 1,
+                'chemical_code' => $code,
+                'chemical_name' => trim($request->chemical_name),
+                'unit'          => trim($request->unit),
+                'category_id'   => $category?->id ?? 1,
+                'location_id'   => $location?->id ?? 1,
+                'current_stock' => $totalStock,
+                'minimum_stock' => $minimumStock,
+                'status'        => $status,
+                'created_by'    => auth()->id(),
+                'updated_by'    => auth()->id(),
+            ]);
+
+            // Create initial stock ledger entry for audit trail (P2.3: consistency with ChemicalController)
+            if ($totalStock > 0) {
+                $stockService = app(StockService::class);
+                $stockService->createInitialStockTransaction($chemical);
+            }
+
+            // If specific months were submitted (from Master Report)
+            if ($request->has('months') && is_array($request->months)) {
+                foreach ($request->months as $mKey => $val) {
+                    if ($val !== null && $val !== '') {
+                        $cleanVal = is_string($val) ? (float)str_replace(',', '.', trim($val)) : (float)$val;
+                        ChemicalMonthlyBalance::create([
+                            'chemical_id'  => $chemical->id,
+                            'period_month' => $mKey,
+                            'saldo_awal'   => $cleanVal,
+                            'penerimaan'   => 0,
+                        ]);
+                    }
+                }
+            } elseif ($periodMonth && ($saldoAwal > 0 || $penerimaan > 0)) {
+                ChemicalMonthlyBalance::create([
+                    'chemical_id'  => $chemical->id,
+                    'period_month' => $periodMonth,
+                    'saldo_awal'   => $saldoAwal,
+                    'penerimaan'   => $penerimaan,
+                ]);
+            }
+
+            AuditLogService::logCreated('Chemical', $chemical->id, [
+                'chemical_name' => $chemical->chemical_name,
+                'chemical_code' => $chemical->chemical_code,
+                'unit'          => $chemical->unit,
+                'initial_stock' => $chemical->current_stock,
+                'minimum_stock' => $chemical->minimum_stock,
+            ]);
+
+            return $chemical;
+        });
+
+        // Generate QR code outside transaction (file I/O is best-effort)
+        try {
+            $qrService = app(\App\Services\QRCodeService::class);
+            $qrContent = $qrService->buildContent($chemical->chemical_code);
+            $chemical->qr_code = $qrService->generate($chemical->chemical_code, $qrContent);
+            $chemical->save();
+        } catch (\Throwable $e) {
+            // best-effort: QR failure does not roll back the chemical record
+        }
+
+        if ($request->wantsJson() || $request->ajax()) {
+            return response()->json([
+                'success'  => true,
+                'chemical' => $chemical,
+                'message'  => "Chemical '{$chemical->chemical_name}' berhasil ditambahkan.",
+            ]);
+        }
+
+        $redirectTo = $request->redirect_to;
+        if ($redirectTo === 'master-report') {
+            return redirect()->route('transactions.master-report', ['highlight' => $chemical->id])
+                ->with('success', "Chemical '{$chemical->chemical_name}' berhasil ditambahkan ke Master Report.");
+        } elseif ($redirectTo === 'warning-stock') {
+            return redirect()->route('transactions.warning-stock', ['highlight' => $chemical->id])
+                ->with('success', "Chemical '{$chemical->chemical_name}' berhasil ditambahkan ke Warning Stock.");
+        }
+
+        return redirect()->route('transactions.index', ['month' => $periodMonth, 'highlight' => $chemical->id])
             ->with('success', "Chemical '{$chemical->chemical_name}' berhasil ditambahkan ke log.");
+    }
+
+    /**
+     * Update minimum_stock for a chemical (called via AJAX from Warning Stock / Master Report edit modal).
+     */
+    public function updateMinimumStock(Request $request)
+    {
+        // Authorization: only ADMIN / STOCK_MANAGER
+        abort_unless(auth()->user()?->canManageStock(), 403);
+
+        $minStock = $request->minimum_stock;
+        if (is_string($minStock)) {
+            $minStock = str_replace(',', '.', trim($minStock));
+        }
+        $request->merge(['minimum_stock' => $minStock]);
+
+        $request->validate([
+            'chemical_id'   => 'required|exists:chemicals,id',
+            'minimum_stock' => 'required|numeric|min:0',
+        ]);
+
+        $chemical = Chemical::findOrFail($request->chemical_id);
+        $old = ['minimum_stock' => $chemical->minimum_stock];
+        $chemical->minimum_stock = (float) $request->minimum_stock;
+        $chemical->updated_by    = auth()->id();
+        $chemical->save();
+
+        AuditLogService::logUpdated('Chemical', $chemical->id, $old, ['minimum_stock' => $chemical->minimum_stock]);
+
+        return response()->json([
+            'success'       => true,
+            'minimum_stock' => $chemical->minimum_stock,
+        ]);
+    }
+
+    /**
+     * Delete a chemical and all its associated log data.
+     */
+    public function destroyChemical(Chemical $chemical)
+    {
+        // Authorization: only ADMIN can delete chemicals from the log
+        abort_unless(auth()->user()?->isAdmin(), 403, 'Hanya Administrator yang dapat menghapus chemical.');
+
+        $name = $chemical->chemical_name;
+        $id   = $chemical->id;
+
+        DB::transaction(function () use ($chemical) {
+            // 1. Remove daily usage records (cascade, but explicit)
+            $chemical->dailyUsages()->delete();
+
+            // 2. Remove monthly balance records (cascade, but explicit)
+            $chemical->monthlyBalances()->delete();
+
+            // 3. Remove stock_transactions (RESTRICT FK — must delete manually)
+            DB::table('stock_transactions')->where('chemical_id', $chemical->id)->delete();
+
+            // 4. Remove stock_adjustments (RESTRICT FK — must delete manually)
+            DB::table('stock_adjustments')->where('chemical_id', $chemical->id)->delete();
+
+            // 5. Remove chemical_documents (cascade, but explicit)
+            DB::table('chemical_documents')->where('chemical_id', $chemical->id)->delete();
+
+            // 6. Finally delete the chemical itself
+            $chemical->delete();
+        });
+
+        AuditLogService::logDeleted('Chemical', $id, ['chemical_name' => $name, 'source' => 'log_sheet']);
+
+        if (request()->expectsJson()) {
+            return response()->json(['success' => true, 'message' => "Chemical '{$name}' berhasil dihapus."]);
+        }
+
+        return redirect()->back()->with('success', "Chemical '{$name}' berhasil dihapus dari log.");
     }
 
     public static function getReferenceChemicalNames(): array

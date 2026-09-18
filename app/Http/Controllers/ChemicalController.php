@@ -164,14 +164,16 @@ class ChemicalController extends Controller
         // Foreign key constraint protection: prevent unhandled QueryException
         $txCount = $chemical->stockTransactions()->count();
         $adjCount = $chemical->stockAdjustments()->count();
+        $usageCount = $chemical->dailyUsages()->count();
 
-        if ($txCount > 0 || $adjCount > 0) {
+        if ($txCount > 0 || $adjCount > 0 || $usageCount > 0) {
             $details = [];
             if ($txCount > 0) $details[] = "{$txCount} stock transaction(s)";
             if ($adjCount > 0) $details[] = "{$adjCount} stock adjustment(s)";
+            if ($usageCount > 0) $details[] = "{$usageCount} daily usage log record(s)";
             $reason = implode(' and ', $details);
 
-            return back()->with('error', "Cannot delete chemical '{$chemical->chemical_name}' because it has {$reason} recorded. For regulatory audit and traceability, chemicals with transaction history cannot be deleted.");
+            return back()->with('error', "Cannot delete chemical '{$chemical->chemical_name}' because it has {$reason} recorded. For regulatory audit and traceability, chemicals with recorded history cannot be deleted.");
         }
 
         $name = $chemical->chemical_name;

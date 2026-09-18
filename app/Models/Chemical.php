@@ -11,6 +11,7 @@ class Chemical extends Model
     use HasFactory;
 
     protected $fillable = [
+        'sort_order',
         'chemical_code', 'chemical_name', 'cas_number', 'category_id',
         'supplier', 'manufacturer', 'catalog_number', 'batch_number', 'lot_number',
         'concentration', 'physical_state', 'unit', 'current_stock',
